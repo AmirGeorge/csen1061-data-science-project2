@@ -9,13 +9,28 @@ output: html_document
 In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`. 
 
 ##4- Decisioon Tree with merging all `contract_ref.csv` columns (Amir)
-By continuing on number `1` above (Decision Tree classifier), we merged with all columns from `contract_ref.csv`, and obtained a score of `0.57585`, which is a decrease from the original score, so this approach is neglected.
+By continuing on number `1` above (Decision Tree classifier), I merged with all columns from `contract_ref.csv`, and obtained a score of `0.57585`, which is a decrease from the original score, so this approach was neglected.
 
-##5- Naive Bayes classifier
-By trying on on the Naive Bayes classifier, a score of `0.56603` is obtained, which is less than that obtained from the Decision Tree classifier, so this approach is neglected.
+##5- Naive Bayes classifier (Amir)
+By trying on on the Naive Bayes classifier, a score of `0.56603` was obtained, which was less than that obtained from the Decision Tree classifier, so this approach was neglected.
 
-##6- Support Vector Machine classifier
-By trying on on the Support Vector Machine (SMO) classifier, a score of `0.50000` is obtained, which is less than that obtained from the Decision Tree classifier, so this approach is neglected.
+##6- Support Vector Machine classifier (Amir)
+By trying on on the Support Vector Machine (SMO) classifier, a score of `0.50000` was obtained, which was less than that obtained from the Decision Tree classifier, so this approach was neglected.
 
-##9- Neural Network with removing `SESSION_COUNT` columns
-By continuing on number `8` above (NN classifier), we removed all `SESSION_COUNT` from the prediction. The intuition behind this approach is that `USAGE` is the main concern here. However, a decreased score of `0.58118` was obtained, proving that session count indeed matters.
+##9- Neural Network with removing `SESSION_COUNT` columns (Amir)
+By continuing on number `8` above (NN classifier), I removed all `SESSION_COUNT` from the prediction. The intuition behind this approach is that `USAGE` is the main concern here. However, a decreased score of `0.58118` was obtained, proving that session count indeed matters, and the approach here was neglected.
+
+##10- Neural Network with weighted monthly usages (Amir)
+By continuing on number `8` above (NN classifier), an approach was tried to weigh all monthly usages. The intuition was that the last month would be the most important month, followed by the second to last month and so on. This was implemented by multiplying the usage columns in the last 4 months by values ranging from 2 to 5. A low score of `0.50587` was obtained as a result, so this approach was neglected. I suspect that the intuition itself could be sound but the way in which it was implemented was responsible for the decreased score.
+
+##11- Neural Network with only last month data (Amir)
+By continuing on number `8` above (NN classifier), an approach was tried to only depend on the data from the last month, and neglect all the usage and session count columns from the first four months. A score of `0.62686` was obtained which is surprisingly not much less than the original score of `0.63391`. But due to it being a lesser score, the approach was neglected.
+
+##12- Neural Network with removing `CONTRACT_KEY` from predictions (Amir)
+I realized that the `CONTRACT_KEY` in both the train and test datasets factored as an integer in the predictions, which does not make sense at all. So, by removing it from predictions, an improved score of `0.65550` was obtained with the NN classifier. So, this approach is taken into account from now on.
+
+##13- Integrating roaming data (Amir)
+Buidling on the approach in `12`, I integrated with the roaming data from the `roaming_monthly.csv` file. For both the train and test datasets, 10 extra columns were added as the roaming usage and roaming number of sessions for each of the 5 months. The values of these columns were extracted from `roaming_monthly.csv`. By factoring them into the prediction, an improved score of `0.67939` was reached. So, this approach is implemented from now on.
+
+##14- Adjustment to roaming data (Amir)
+Buidling on the approach in `13`, I implemented a small adjustment by subtracting the newly added monthly roaming data from original total mothly data, so that the original usage and session count columns would now describe local data only. The score improved to `0.68188` which makes sense. So, this approach is implemented from now on.
