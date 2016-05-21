@@ -1,0 +1,21 @@
+---
+title: "Project2-DataScience"
+author: "Abanoub Mimi, Amir George, Tony Foti"
+date: "May 8, 2016"
+output: html_document
+---
+
+#Progress tracking
+In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`. 
+
+##4- Decisioon Tree with merging all `contract_ref.csv` columns (Amir)
+By continuing on number `1` above (Decision Tree classifier), we merged with all columns from `contract_ref.csv`, and obtained a score of `0.57585`, which is a decrease from the original score, so this approach is neglected.
+
+##5- Naive Bayes classifier
+By trying on on the Naive Bayes classifier, a score of `0.56603` is obtained, which is less than that obtained from the Decision Tree classifier, so this approach is neglected.
+
+##6- Support Vector Machine classifier
+By trying on on the Support Vector Machine (SMO) classifier, a score of `0.50000` is obtained, which is less than that obtained from the Decision Tree classifier, so this approach is neglected.
+
+##9- Neural Network with removing `SESSION_COUNT` columns
+By continuing on number `8` above (NN classifier), we removed all `SESSION_COUNT` from the prediction. The intuition behind this approach is that `USAGE` is the main concern here. However, a decreased score of `0.58118` was obtained, proving that session count indeed matters.
