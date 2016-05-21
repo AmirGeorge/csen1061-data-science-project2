@@ -34,3 +34,6 @@ Buidling on the approach in `12`, I integrated with the roaming data from the `r
 
 ##14- Adjustment to roaming data (Amir)
 Buidling on the approach in `13`, I implemented a small adjustment by subtracting the newly added monthly roaming data from original total mothly data, so that the original usage and session count columns would now describe local data only. The score improved to `0.68188` which makes sense. So, this approach is implemented from now on.
+
+##15- Adding `RATE_PLAN` feature (Amir )
+Building on `14`, I added the `RATE_PLAN` feature from `contract_ref` in the model prediction. Building this model took several hours on my local machine, which was expected due to the large number of levels for this feature (183 levels). However, this largely sabotaged the prediction process as a minimum score of `0.50000` resulted from this approach. This indicated that some feature engineering needs to be done on this feature and all features in `contract_ref` in general to obtain more useful parameters.
