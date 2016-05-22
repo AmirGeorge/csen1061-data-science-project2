@@ -394,8 +394,41 @@ MLP &lt;- make_Weka_classifier(&quot;weka/classifiers/functions/MultilayerPercep
 <pre class="r"><code>calendarRefDf[calendarRefDf$DATE_KEY==6365,]</code></pre>
 <pre><code>##     DATE_KEY  FULL_DATE DAY_NAME WEEKDAY_FLAG MONTH_KEY MONTH_NAME
 ## 152     6365 2016-02-29   Monday            Y       210   February</code></pre>
-<p>The min and max date keys correspond to the first and last days of February 2016 respectively. This indicated that the date keys are relatively ordered with respect to the dates.</p>
+<p>The min and max date keys correspond to the first and last days of February 2016 respectively. This indicates that the date keys are relatively ordered with respect to the dates.<br />Now we proceed to validate the observations in the daily aggregate dataset with what we already know from the monthly datasets. We randomly choose user with <code>CONTRACT_KEY</code>=<code>150761380</code> to study on.</p>
+<pre class="r"><code>trainDf[trainDf$CONTRACT_KEY==150761380,c(&quot;X210_USAGE&quot;, &quot;X210_SESSION_COUNT&quot;)]</code></pre>
+<pre><code>##       X210_USAGE X210_SESSION_COUNT
+## 46288        702                716</code></pre>
+<pre class="r"><code>dailyAggDf[dailyAggDf$CONTRACT_KEY==150761380,]$NO_OF_SESSIONS %&gt;% sum</code></pre>
+<pre><code>## [1] 716</code></pre>
+<p>We find that the sum of number of sessions of all days is indeed the total number of sessions in the last month.</p>
+<pre class="r"><code>dailyAggDf[dailyAggDf$CONTRACT_KEY==150761380,]$TOTAL_CONSUMPTION %&gt;% sum</code></pre>
+<pre><code>## [1] 735391744</code></pre>
+<p>However, the sum of total consumption all days does not match the monthly usage value. If we divide the sum by (1024 * 1024) we get a matching value.</p>
+<pre class="r"><code>735391744 / (1024 * 1024)</code></pre>
+<pre><code>## [1] 701.3242</code></pre>
+<p>This indicates that the daily consumption was in bytes and what we did now was converting it to MB.</p>
 </div>
+</div>
+<div id="offline-evaluation" class="section level1">
+<h1>Offline Evaluation</h1>
+<p>Due to the limited number of possible submissions per day on the kaggle competition, a method for offline evaluation of our obtained models was necessary. Two helper functions serve that purpose. The function <code>getEvaluation</code> extracts the required classification evaluation measures from a given confusion matrix.</p>
+<pre class="r"><code>getEvaluation &lt;- function(confMat) {
+  tp &lt;- confMat[1,1]
+  fn &lt;- confMat[1, 2]
+  fp &lt;- confMat[2, 1]
+  tn &lt;- confMat[2, 2]
+  Accurary &lt;- (tp + tn) / (tp + fn + fp + tn)
+  Precision &lt;- tp / (tp + fp)
+  Recall &lt;- tp / (tp + fn)
+  F1 &lt;- (2 * Precision * Recall) / (Precision + Recall)
+  res &lt;- cbind(Accurary,Precision,Recall,F1)
+  return(res)
+}</code></pre>
+<p>The function <code>evaluateModel</code> uses stratified 10-fold cross-validation to evaluate the input model, and calls the <code>getEvaluation</code> function to obtain the relevant scores, then outputs them.</p>
+<pre class="r"><code>evaluateModel &lt;- function(model){
+  tenFoldModel &lt;- evaluate_Weka_classifier(model, numFolds = 10, seed = 123)
+  tenFoldModel$confusionMatrix %&gt;% getEvaluation %&gt;% kable
+}</code></pre>
 </div>
 <div id="progress-tracking" class="section level1">
 <h1>Progress tracking</h1>

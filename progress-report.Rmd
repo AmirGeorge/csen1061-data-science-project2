@@ -112,7 +112,45 @@ The daily aggregate dataframe has 4985457 observations that belong to 30995 diff
 calendarRefDf[calendarRefDf$DATE_KEY==6337,]
 calendarRefDf[calendarRefDf$DATE_KEY==6365,]
 ```
-The min and max date keys correspond to the first and last days of February 2016 respectively. This indicates that the date keys are relatively ordered with respect to the dates.
+The min and max date keys correspond to the first and last days of February 2016 respectively. This indicates that the date keys are relatively ordered with respect to the dates.  
+Now we proceed to validate the observations in the daily aggregate dataset with what we already know from the monthly datasets. We randomly choose user with `CONTRACT_KEY`=`150761380` to study on.
+```{r}
+trainDf[trainDf$CONTRACT_KEY==150761380,c("X210_USAGE", "X210_SESSION_COUNT")]
+dailyAggDf[dailyAggDf$CONTRACT_KEY==150761380,]$NO_OF_SESSIONS %>% sum
+```
+We find that the sum of number of sessions of all days is indeed the total number of sessions in the last month.
+```{r}
+dailyAggDf[dailyAggDf$CONTRACT_KEY==150761380,]$TOTAL_CONSUMPTION %>% sum
+```
+However, the sum of total consumption all days does not match the monthly usage value. If we divide the sum by (1024 * 1024) and round up we get a matching value. 
+```{r}
+735391744 / (1024 * 1024)
+```
+This indicates that the daily consumption was in bytes and what we did now was converting it to MB.
+
+#Offline Evaluation
+Due to the limited number of possible submissions per day on the kaggle competition, a method for offline evaluation of our obtained models was necessary. Two helper functions serve that purpose. The function `getEvaluation` extracts the required classification evaluation measures from a given confusion matrix.
+```{r}
+getEvaluation <- function(confMat) {
+  tp <- confMat[1,1]
+  fn <- confMat[1, 2]
+  fp <- confMat[2, 1]
+  tn <- confMat[2, 2]
+  Accurary <- (tp + tn) / (tp + fn + fp + tn)
+  Precision <- tp / (tp + fp)
+  Recall <- tp / (tp + fn)
+  F1 <- (2 * Precision * Recall) / (Precision + Recall)
+  res <- cbind(Accurary,Precision,Recall,F1)
+  return(res)
+}
+```
+The function `evaluateModel` uses stratified 10-fold cross-validation to evaluate the input model, and calls the `getEvaluation` function to obtain the relevant scores, then outputs them.
+```{r}
+evaluateModel <- function(model){
+  tenFoldModel <- evaluate_Weka_classifier(model, numFolds = 10, seed = 123)
+  tenFoldModel$confusionMatrix %>% getEvaluation %>% kable
+}
+```
 
 
 #Progress tracking
