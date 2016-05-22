@@ -117,18 +117,20 @@ $(document).ready(function () {
 
 <div id="exploratory-analysis-and-cleaning-data-amir" class="section level1">
 <h1>Exploratory analysis and cleaning data (Amir)</h1>
-<p>We begin by attaching required libraries and loading the datasets.</p>
+<p>We begin by attaching required libraries and loading the datasets and relevant classifiers.</p>
 <pre class="r"><code>library(dplyr)
 library(knitr)
 library(RWeka)
-library(tidyr)
-
-trainDf &lt;- read.csv('data/train.csv')
+library(tidyr)</code></pre>
+<pre class="r"><code>trainDf &lt;- read.csv('data/train.csv')
 testDf &lt;- read.csv('data/test.csv')
 contractRefDf &lt;- read.csv('data/contract_ref.csv')
 calendarRefDf &lt;- read.csv('data/calendar_ref.csv')
 dailyAggDf &lt;- read.csv('data/daily_aggregate.csv')
 roamingDf &lt;- read.csv('data/roaming_monthly.csv')</code></pre>
+<pre class="r"><code>RF &lt;- make_Weka_classifier(&quot;weka/classifiers/trees/RandomForest&quot;)
+NB &lt;- make_Weka_classifier(&quot;weka/classifiers/bayes/NaiveBayes&quot;)
+MLP &lt;- make_Weka_classifier(&quot;weka/classifiers/functions/MultilayerPerceptron&quot;)</code></pre>
 </div>
 <div id="progress-tracking" class="section level1">
 <h1>Progress tracking</h1>
