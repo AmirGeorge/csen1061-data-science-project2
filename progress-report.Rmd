@@ -5,7 +5,7 @@ date: "May 8, 2016"
 output: html_document
 ---
 
-#Exploratory analysis and cleaning data (Amir)
+#Exploratory analysis (Amir)
 We begin by attaching required libraries and loading the datasets and relevant classifiers.
 ```{r message=FALSE}
 library(dplyr)
@@ -22,10 +22,38 @@ dailyAggDf <- read.csv('data/daily_aggregate.csv')
 roamingDf <- read.csv('data/roaming_monthly.csv')
 ```
 ```{r}
+trainDf$TARGET <- as.factor(trainDf$TARGET)
 RF <- make_Weka_classifier("weka/classifiers/trees/RandomForest")
 NB <- make_Weka_classifier("weka/classifiers/bayes/NaiveBayes")
 MLP <- make_Weka_classifier("weka/classifiers/functions/MultilayerPerceptron")
 ```
+## Train and Test datasets
+We proceed by taking a look at the training and test datasets:
+```{r}
+trainDf %>% dim
+trainDf$CONTRACT_KEY %>% unique %>% length
+trainDf %>% summary
+sapply(trainDf, function(x) sum(is.na(x)))
+testDf %>% dim
+testDf$CONTRACT_KEY %>% unique %>% length
+testDf %>% summary
+sapply(testDf, function(x) sum(is.na(x)))
+```
+There are no NA values in the original train and test datasets, and no multiple observations for the same `CONTRACT_KEY`.
+
+## ContractRef dataset
+We now proceed with examiming the `contract_ref` dataset.
+```{r}
+contractRefDf %>% dim
+contractRefDf$CONTRACT_KEY %>% unique %>% length
+```
+No multiple observations for the same `CONTRACT_KEY`.
+```{r}
+sapply(contractRefDf, function(x) sum(is.na(x)))
+contractRefDf %>% summary
+```
+Some weird observations are spotted in this examination. There are negative age values. There are age values at 99 which are highly unlikely. The gender has missing values represented by the levels `Not Entered` and `Unknown`. Gender has duplicate values denoting males which are `Male` and `M`. Same for `Female` and `F`. There are 6 NA observations in the `VALUE_SEGMENT` column, as well as 8169 values of "N/A" which are basically the same as NA values.
+
 
 #Progress tracking
 In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`. The code chunks embedded in this section are for illustration purposes only.

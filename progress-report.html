@@ -115,8 +115,8 @@ $(document).ready(function () {
 </div>
 
 
-<div id="exploratory-analysis-and-cleaning-data-amir" class="section level1">
-<h1>Exploratory analysis and cleaning data (Amir)</h1>
+<div id="exploratory-analysis-amir" class="section level1">
+<h1>Exploratory analysis (Amir)</h1>
 <p>We begin by attaching required libraries and loading the datasets and relevant classifiers.</p>
 <pre class="r"><code>library(dplyr)
 library(knitr)
@@ -128,9 +128,132 @@ contractRefDf &lt;- read.csv('data/contract_ref.csv')
 calendarRefDf &lt;- read.csv('data/calendar_ref.csv')
 dailyAggDf &lt;- read.csv('data/daily_aggregate.csv')
 roamingDf &lt;- read.csv('data/roaming_monthly.csv')</code></pre>
-<pre class="r"><code>RF &lt;- make_Weka_classifier(&quot;weka/classifiers/trees/RandomForest&quot;)
+<pre class="r"><code>trainDf$TARGET &lt;- as.factor(trainDf$TARGET)
+RF &lt;- make_Weka_classifier(&quot;weka/classifiers/trees/RandomForest&quot;)
 NB &lt;- make_Weka_classifier(&quot;weka/classifiers/bayes/NaiveBayes&quot;)
 MLP &lt;- make_Weka_classifier(&quot;weka/classifiers/functions/MultilayerPerceptron&quot;)</code></pre>
+<div id="train-and-test-datasets" class="section level2">
+<h2>Train and Test datasets</h2>
+<p>We proceed by taking a look at the training and test datasets:</p>
+<pre class="r"><code>trainDf %&gt;% dim</code></pre>
+<pre><code>## [1] 75422    12</code></pre>
+<pre class="r"><code>trainDf$CONTRACT_KEY %&gt;% unique %&gt;% length</code></pre>
+<pre><code>## [1] 75422</code></pre>
+<pre class="r"><code>trainDf %&gt;% summary</code></pre>
+<pre><code>##   CONTRACT_KEY       X206_SESSION_COUNT   X206_USAGE    
+##  Min.   :142404951   Min.   :    1.0    Min.   :     0  
+##  1st Qu.:145462942   1st Qu.:   72.0    1st Qu.:    31  
+##  Median :149272192   Median :  226.0    Median :   504  
+##  Mean   :149032149   Mean   :  564.6    Mean   :  1646  
+##  3rd Qu.:152434408   3rd Qu.:  615.0    3rd Qu.:  1806  
+##  Max.   :156233277   Max.   :21711.0    Max.   :217661  
+##  X207_SESSION_COUNT   X207_USAGE     X208_SESSION_COUNT   X208_USAGE    
+##  Min.   :    1.0    Min.   :     0   Min.   :    1.0    Min.   :     0  
+##  1st Qu.:   76.0    1st Qu.:    46   1st Qu.:   77.0    1st Qu.:    69  
+##  Median :  236.0    Median :   591   Median :  226.0    Median :   635  
+##  Mean   :  595.7    Mean   :  1680   Mean   :  653.4    Mean   :  1774  
+##  3rd Qu.:  648.0    3rd Qu.:  1873   3rd Qu.:  617.0    3rd Qu.:  1940  
+##  Max.   :25075.0    Max.   :184156   Max.   :34566.0    Max.   :279969  
+##  X209_SESSION_COUNT   X209_USAGE     X210_SESSION_COUNT   X210_USAGE    
+##  Min.   :    1.0    Min.   :     0   Min.   :    1.0    Min.   :     0  
+##  1st Qu.:   77.0    1st Qu.:    74   1st Qu.:   72.0    1st Qu.:    65  
+##  Median :  220.0    Median :   630   Median :  214.0    Median :   605  
+##  Mean   :  631.5    Mean   :  1835   Mean   :  637.3    Mean   :  1751  
+##  3rd Qu.:  599.0    3rd Qu.:  1976   3rd Qu.:  598.0    3rd Qu.:  1897  
+##  Max.   :37338.0    Max.   :229770   Max.   :35808.0    Max.   :249308  
+##  TARGET   
+##  0:60245  
+##  1:15177  
+##           
+##           
+##           
+## </code></pre>
+<pre class="r"><code>sapply(trainDf, function(x) sum(is.na(x)))</code></pre>
+<pre><code>##       CONTRACT_KEY X206_SESSION_COUNT         X206_USAGE 
+##                  0                  0                  0 
+## X207_SESSION_COUNT         X207_USAGE X208_SESSION_COUNT 
+##                  0                  0                  0 
+##         X208_USAGE X209_SESSION_COUNT         X209_USAGE 
+##                  0                  0                  0 
+## X210_SESSION_COUNT         X210_USAGE             TARGET 
+##                  0                  0                  0</code></pre>
+<pre class="r"><code>testDf %&gt;% dim</code></pre>
+<pre><code>## [1] 32321    11</code></pre>
+<pre class="r"><code>testDf$CONTRACT_KEY %&gt;% unique %&gt;% length</code></pre>
+<pre><code>## [1] 32321</code></pre>
+<pre class="r"><code>testDf %&gt;% summary</code></pre>
+<pre><code>##   CONTRACT_KEY       X206_SESSION_COUNT   X206_USAGE    
+##  Min.   :142404960   Min.   :    1.0    Min.   :     1  
+##  1st Qu.:145462181   1st Qu.:   73.0    1st Qu.:    33  
+##  Median :149187079   Median :  226.0    Median :   520  
+##  Mean   :149016819   Mean   :  568.3    Mean   :  1673  
+##  3rd Qu.:152432330   3rd Qu.:  614.0    3rd Qu.:  1831  
+##  Max.   :156233408   Max.   :37245.0    Max.   :172834  
+##  X207_SESSION_COUNT   X207_USAGE     X208_SESSION_COUNT   X208_USAGE    
+##  Min.   :    1.0    Min.   :     0   Min.   :    1.0    Min.   :     1  
+##  1st Qu.:   76.0    1st Qu.:    48   1st Qu.:   78.0    1st Qu.:    70  
+##  Median :  238.0    Median :   585   Median :  227.0    Median :   644  
+##  Mean   :  599.5    Mean   :  1718   Mean   :  659.3    Mean   :  1829  
+##  3rd Qu.:  649.0    3rd Qu.:  1886   3rd Qu.:  624.0    3rd Qu.:  1978  
+##  Max.   :27507.0    Max.   :247282   Max.   :27753.0    Max.   :274432  
+##  X209_SESSION_COUNT   X209_USAGE     X210_SESSION_COUNT   X210_USAGE    
+##  Min.   :    1.0    Min.   :     1   Min.   :    1.0    Min.   :     1  
+##  1st Qu.:   76.0    1st Qu.:    70   1st Qu.:   72.0    1st Qu.:    63  
+##  Median :  219.0    Median :   634   Median :  213.0    Median :   609  
+##  Mean   :  635.8    Mean   :  1897   Mean   :  643.3    Mean   :  1793  
+##  3rd Qu.:  596.0    3rd Qu.:  2003   3rd Qu.:  602.0    3rd Qu.:  1911  
+##  Max.   :26071.0    Max.   :205225   Max.   :25435.0    Max.   :244814</code></pre>
+<pre class="r"><code>sapply(testDf, function(x) sum(is.na(x)))</code></pre>
+<pre><code>##       CONTRACT_KEY X206_SESSION_COUNT         X206_USAGE 
+##                  0                  0                  0 
+## X207_SESSION_COUNT         X207_USAGE X208_SESSION_COUNT 
+##                  0                  0                  0 
+##         X208_USAGE X209_SESSION_COUNT         X209_USAGE 
+##                  0                  0                  0 
+## X210_SESSION_COUNT         X210_USAGE 
+##                  0                  0</code></pre>
+<p>There are no NA values in the original train and test datasets, and no multiple observations for the same <code>CONTRACT_KEY</code>.</p>
+</div>
+<div id="contractref-dataset" class="section level2">
+<h2>ContractRef dataset</h2>
+<p>We now proceed with examiming the <code>contract_ref</code> dataset.</p>
+<pre class="r"><code>contractRefDf %&gt;% dim</code></pre>
+<pre><code>## [1] 107743      6</code></pre>
+<pre class="r"><code>contractRefDf$CONTRACT_KEY %&gt;% unique %&gt;% length</code></pre>
+<pre><code>## [1] 107743</code></pre>
+<p>No multiple observations for the same <code>CONTRACT_KEY</code>.</p>
+<pre class="r"><code>sapply(contractRefDf, function(x) sum(is.na(x)))</code></pre>
+<pre><code>##  CONTRACT_KEY           AGE        GENDER     RATE_PLAN VALUE_SEGMENT 
+##             0             0             0             0             6 
+##  HANDSET_NAME 
+##             0</code></pre>
+<pre class="r"><code>contractRefDf %&gt;% summary</code></pre>
+<pre><code>##   CONTRACT_KEY            AGE                 GENDER     
+##  Min.   :142404951   Min.   :-29.00   Not Entered:54379  
+##  1st Qu.:145462648   1st Qu.: 36.00   Male       :25064  
+##  Median :149270714   Median : 61.00   M          :17499  
+##  Mean   :149027550   Mean   : 67.55   Female     : 5510  
+##  3rd Qu.:152433554   3rd Qu.: 99.00   Unknown    : 3148  
+##  Max.   :156233408   Max.   : 99.00   F          : 1468  
+##                                       (Other)    :  675  
+##                          RATE_PLAN      VALUE_SEGMENT  
+##  Enterprise Shared Data Bundle:14155   Core    :48031  
+##  2013 Business El Asly 30     : 8696   High    :21666  
+##  Business Flex 35             : 8046   Med-Low :12992  
+##  2014 ElAsly Plus 35          : 7039   Med-High:12577  
+##  Red 150                      : 5456   N/A     : 8169  
+##  2014 Flex 40 CL 50           : 3583   (Other) : 4302  
+##  (Other)                      :60768   NA's    :    6  
+##                           HANDSET_NAME  
+##  Fibocom Wireless G610          : 9980  
+##  Vodafone K4201-Z               : 4660  
+##  Apple iPhone 6                 : 4139  
+##  Apple iPhone 5S                : 2341  
+##  Apple iPhone 6 Plus            : 2025  
+##  Samsung Galaxy Grand Prime DUOS: 1774  
+##  (Other)                        :82824</code></pre>
+<p>Some weird observations are spotted in this examination. There are negative age values. There are age values at 99 which are highly unlikely. The gender has missing values represented by the levels <code>Not Entered</code> and <code>Unknown</code>. Gender has duplicate values denoting males which are <code>Male</code> and <code>M</code>. Same for <code>Female</code> and <code>F</code>. There are 6 NA observations in the <code>VALUE_SEGMENT</code> column, as well as 8169 values of “N/A” which are basically the same as NA values.</p>
+</div>
 </div>
 <div id="progress-tracking" class="section level1">
 <h1>Progress tracking</h1>
