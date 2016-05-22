@@ -5,6 +5,22 @@ date: "May 8, 2016"
 output: html_document
 ---
 
+#Exploratory analysis and cleaning data (Amir)
+We begin by attaching required libraries and loading the datasets.
+```{r message=FALSE, cache=TRUE}
+library(dplyr)
+library(knitr)
+library(RWeka)
+library(tidyr)
+
+trainDf <- read.csv('data/train.csv')
+testDf <- read.csv('data/test.csv')
+contractRefDf <- read.csv('data/contract_ref.csv')
+calendarRefDf <- read.csv('data/calendar_ref.csv')
+dailyAggDf <- read.csv('data/daily_aggregate.csv')
+roamingDf <- read.csv('data/roaming_monthly.csv')
+```
+
 #Progress tracking
 In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`. 
 
