@@ -52,7 +52,7 @@ No multiple observations for the same `CONTRACT_KEY`.
 sapply(contractRefDf, function(x) sum(is.na(x)))
 contractRefDf %>% summary
 ```
-Some weird observations are spotted in this examination. There are negative age values. There are age values at 99 which are highly unlikely. The gender has missing values represented by the levels `Not Entered` and `Unknown`. Gender has duplicate values denoting males which are `Male` and `M`. Same for `Female` and `F`. There are 6 NA observations in the `VALUE_SEGMENT` column, as well as 8169 values of "N/A" which are basically the same as NA values.
+Some weird observations are spotted in this examination:
 ### Unnaturally small age values
 ```{r}
 contractRefDf[contractRefDf$AGE < 15,]
@@ -79,6 +79,40 @@ Moreover, the male gender has multiple labels (`Male`, `M` & `m`), as well as th
 
 ###NAs in `VALUE_SEGMENT`
 There are 6 NA observations in the `VALUE_SEGMENT` column, as well as 8169 values of "N/A" which are basically the same as NA values. So, these are all missing values.
+
+##Roaming dataset
+```{r}
+roamingDf %>% dim
+roamingDf$CONTRACT_KEY %>% unique %>% length
+roamingDf %>% summary
+sapply(roamingDf, function(x) sum(is.na(x)))
+```
+No weird observations here. The number of observations is greater than the number of unique customers because each customer can have multiple entries concerning different months.
+
+##CalendarRef dataset
+```{r}
+calendarRefDf %>% dim
+calendarRefDf$DATE_KEY %>% unique %>% length
+calendarRefDf %>% summary
+sapply(calendarRefDf, function(x) sum(is.na(x)))
+```
+An interesting observation here is that there are 183 different dates although we only need 29 dates representing the last month in our data which is February 2016.
+
+##Daily aggregate dataset
+```{r cache=TRUE}
+dailyAggDf %>% dim
+dailyAggDf$CONTRACT_KEY %>% unique %>% length
+length(intersect(unique(trainDf$CONTRACT_KEY),unique(dailyAggDf$CONTRACT_KEY)))
+length(intersect(unique(testDf$CONTRACT_KEY),unique(dailyAggDf$CONTRACT_KEY)))
+dailyAggDf %>% summary
+sapply(dailyAggDf, function(x) sum(is.na(x)))
+```
+The daily aggregate dataframe has 4985457 observations that belong to 30995 different customers. Out of those customers, 21708 reside in the training dataset while the remaining 9287 reside in the testing dataset.
+```{r}
+calendarRefDf[calendarRefDf$DATE_KEY==6337,]
+calendarRefDf[calendarRefDf$DATE_KEY==6365,]
+```
+The min and max date keys correspond to the first and last days of February 2016 respectively. This indicates that the date keys are relatively ordered with respect to the dates.
 
 
 #Progress tracking

@@ -252,7 +252,7 @@ MLP &lt;- make_Weka_classifier(&quot;weka/classifiers/functions/MultilayerPercep
 ##  Apple iPhone 6 Plus            : 2025  
 ##  Samsung Galaxy Grand Prime DUOS: 1774  
 ##  (Other)                        :82824</code></pre>
-<p>Some weird observations are spotted in this examination. There are negative age values. There are age values at 99 which are highly unlikely. The gender has missing values represented by the levels <code>Not Entered</code> and <code>Unknown</code>. Gender has duplicate values denoting males which are <code>Male</code> and <code>M</code>. Same for <code>Female</code> and <code>F</code>. There are 6 NA observations in the <code>VALUE_SEGMENT</code> column, as well as 8169 values of “N/A” which are basically the same as NA values. ### Unnaturally small age values</p>
+<p>Some weird observations are spotted in this examination: ### Unnaturally small age values</p>
 <pre class="r"><code>contractRefDf[contractRefDf$AGE &lt; 15,]</code></pre>
 <pre><code>##        CONTRACT_KEY AGE      GENDER                  RATE_PLAN
 ## 2024      150356809   2        Male        2014 ElAsly Plus 35
@@ -301,7 +301,100 @@ MLP &lt;- make_Weka_classifier(&quot;weka/classifiers/functions/MultilayerPercep
 <pre><code>## [1] Male        Female      Not Entered M           Unknown     F          
 ## [7] m           f          
 ## Levels: f F Female m M Male Not Entered Unknown</code></pre>
+<p>Moreover, the male gender has multiple labels (<code>Male</code>, <code>M</code> &amp; <code>m</code>), as well as the female gender (<code>Female</code>, <code>F</code> &amp; <code>f</code>).</p>
 </div>
+<div id="nas-in-value_segment" class="section level3">
+<h3>NAs in <code>VALUE_SEGMENT</code></h3>
+<p>There are 6 NA observations in the <code>VALUE_SEGMENT</code> column, as well as 8169 values of “N/A” which are basically the same as NA values. So, these are all missing values.</p>
+</div>
+</div>
+<div id="roaming-dataset" class="section level2">
+<h2>Roaming dataset</h2>
+<pre class="r"><code>roamingDf %&gt;% dim</code></pre>
+<pre><code>## [1] 3946    4</code></pre>
+<pre class="r"><code>roamingDf$CONTRACT_KEY %&gt;% unique %&gt;% length</code></pre>
+<pre><code>## [1] 2374</code></pre>
+<pre class="r"><code>roamingDf %&gt;% summary</code></pre>
+<pre><code>##   CONTRACT_KEY       CALL_MONTH_KEY      USAGE         SESSION_COUNT   
+##  Min.   :142405434   Min.   :206.0   Min.   :   0.00   Min.   :   1.0  
+##  1st Qu.:146464764   1st Qu.:207.0   1st Qu.:   5.00   1st Qu.:   8.0  
+##  Median :150003226   Median :208.0   Median :  34.00   Median :  41.0  
+##  Mean   :149744551   Mean   :208.1   Mean   :  87.57   Mean   : 119.3  
+##  3rd Qu.:153203930   3rd Qu.:209.0   3rd Qu.: 121.75   3rd Qu.: 146.8  
+##  Max.   :156232983   Max.   :210.0   Max.   :1352.00   Max.   :1695.0</code></pre>
+<pre class="r"><code>sapply(roamingDf, function(x) sum(is.na(x)))</code></pre>
+<pre><code>##   CONTRACT_KEY CALL_MONTH_KEY          USAGE  SESSION_COUNT 
+##              0              0              0              0</code></pre>
+<p>No weird observations here. The number of observations is greater than the number of unique customers because each customer can have multiple entries concerning different months.</p>
+</div>
+<div id="calendarref-dataset" class="section level2">
+<h2>CalendarRef dataset</h2>
+<pre class="r"><code>calendarRefDf %&gt;% dim</code></pre>
+<pre><code>## [1] 183   6</code></pre>
+<pre class="r"><code>calendarRefDf$DATE_KEY %&gt;% unique %&gt;% length</code></pre>
+<pre><code>## [1] 183</code></pre>
+<pre class="r"><code>calendarRefDf %&gt;% summary</code></pre>
+<pre><code>##     DATE_KEY         FULL_DATE        DAY_NAME  WEEKDAY_FLAG
+##  Min.   :6214   2015-10-01:  1   Friday   :26   N: 52       
+##  1st Qu.:6260   2015-10-02:  1   Monday   :26   Y:131       
+##  Median :6305   2015-10-03:  1   Saturday :26               
+##  Mean   :6305   2015-10-04:  1   Sunday   :26               
+##  3rd Qu.:6350   2015-10-05:  1   Thursday :27               
+##  Max.   :6396   2015-10-06:  1   Tuesday  :26               
+##                 (Other)   :177   Wednesday:26               
+##    MONTH_KEY        MONTH_NAME
+##  Min.   :206.0   December:31  
+##  1st Qu.:207.0   February:29  
+##  Median :208.0   January :31  
+##  Mean   :208.5   March   :31  
+##  3rd Qu.:210.0   November:30  
+##  Max.   :211.0   October :31  
+## </code></pre>
+<pre class="r"><code>sapply(calendarRefDf, function(x) sum(is.na(x)))</code></pre>
+<pre><code>##     DATE_KEY    FULL_DATE     DAY_NAME WEEKDAY_FLAG    MONTH_KEY 
+##            0            0            0            0            0 
+##   MONTH_NAME 
+##            0</code></pre>
+<p>An interesting observation here is that there are 183 different dates although we only need 29 dates representing the last month in our data which is February 2016.</p>
+</div>
+<div id="daily-aggregate-dataset" class="section level2">
+<h2>Daily aggregate dataset</h2>
+<pre class="r"><code>dailyAggDf %&gt;% dim</code></pre>
+<pre><code>## [1] 4985457       6</code></pre>
+<pre class="r"><code>dailyAggDf$CONTRACT_KEY %&gt;% unique %&gt;% length</code></pre>
+<pre><code>## [1] 30995</code></pre>
+<pre class="r"><code>length(intersect(unique(trainDf$CONTRACT_KEY),unique(dailyAggDf$CONTRACT_KEY)))</code></pre>
+<pre><code>## [1] 21708</code></pre>
+<pre class="r"><code>length(intersect(unique(testDf$CONTRACT_KEY),unique(dailyAggDf$CONTRACT_KEY)))</code></pre>
+<pre><code>## [1] 9287</code></pre>
+<pre class="r"><code>dailyAggDf %&gt;% summary</code></pre>
+<pre><code>##   CONTRACT_KEY       CALL_DATE_KEY     CELL_KEY        ROAMING_FLAG    
+##  Min.   :142404951   Min.   :6337   Min.   :    890   LOCAL  :4824826  
+##  1st Qu.:146824459   1st Qu.:6344   1st Qu.:6795060   ROAMING: 160631  
+##  Median :149994180   Median :6351   Median :6812104                    
+##  Mean   :149715056   Mean   :6351   Mean   :6805081                    
+##  3rd Qu.:152676589   3rd Qu.:6358   3rd Qu.:6836445                    
+##  Max.   :156233408   Max.   :6365   Max.   :6871894                    
+##  TOTAL_CONSUMPTION   NO_OF_SESSIONS    
+##  Min.   :0.000e+00   Min.   :   1.000  
+##  1st Qu.:1.536e+05   1st Qu.:   1.000  
+##  Median :1.004e+06   Median :   1.000  
+##  Mean   :1.745e+07   Mean   :   5.253  
+##  3rd Qu.:7.066e+06   3rd Qu.:   3.000  
+##  Max.   :2.731e+10   Max.   :1262.000</code></pre>
+<pre class="r"><code>sapply(dailyAggDf, function(x) sum(is.na(x)))</code></pre>
+<pre><code>##      CONTRACT_KEY     CALL_DATE_KEY          CELL_KEY      ROAMING_FLAG 
+##                 0                 0                 0                 0 
+## TOTAL_CONSUMPTION    NO_OF_SESSIONS 
+##                 0                 0</code></pre>
+<p>The daily aggregate dataframe has 4985457 observations that belong to 30995 different customers. Out of those customers, 21708 reside in the training dataset while the remaining 9287 reside in the testing dataset.</p>
+<pre class="r"><code>calendarRefDf[calendarRefDf$DATE_KEY==6337,]</code></pre>
+<pre><code>##     DATE_KEY  FULL_DATE DAY_NAME WEEKDAY_FLAG MONTH_KEY MONTH_NAME
+## 124     6337 2016-02-01   Monday            Y       210   February</code></pre>
+<pre class="r"><code>calendarRefDf[calendarRefDf$DATE_KEY==6365,]</code></pre>
+<pre><code>##     DATE_KEY  FULL_DATE DAY_NAME WEEKDAY_FLAG MONTH_KEY MONTH_NAME
+## 152     6365 2016-02-29   Monday            Y       210   February</code></pre>
+<p>The min and max date keys correspond to the first and last days of February 2016 respectively. This indicated that the date keys are relatively ordered with respect to the dates.</p>
 </div>
 </div>
 <div id="progress-tracking" class="section level1">
