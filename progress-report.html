@@ -252,7 +252,56 @@ MLP &lt;- make_Weka_classifier(&quot;weka/classifiers/functions/MultilayerPercep
 ##  Apple iPhone 6 Plus            : 2025  
 ##  Samsung Galaxy Grand Prime DUOS: 1774  
 ##  (Other)                        :82824</code></pre>
-<p>Some weird observations are spotted in this examination. There are negative age values. There are age values at 99 which are highly unlikely. The gender has missing values represented by the levels <code>Not Entered</code> and <code>Unknown</code>. Gender has duplicate values denoting males which are <code>Male</code> and <code>M</code>. Same for <code>Female</code> and <code>F</code>. There are 6 NA observations in the <code>VALUE_SEGMENT</code> column, as well as 8169 values of “N/A” which are basically the same as NA values.</p>
+<p>Some weird observations are spotted in this examination. There are negative age values. There are age values at 99 which are highly unlikely. The gender has missing values represented by the levels <code>Not Entered</code> and <code>Unknown</code>. Gender has duplicate values denoting males which are <code>Male</code> and <code>M</code>. Same for <code>Female</code> and <code>F</code>. There are 6 NA observations in the <code>VALUE_SEGMENT</code> column, as well as 8169 values of “N/A” which are basically the same as NA values. ### Unnaturally small age values</p>
+<pre class="r"><code>contractRefDf[contractRefDf$AGE &lt; 15,]</code></pre>
+<pre><code>##        CONTRACT_KEY AGE      GENDER                  RATE_PLAN
+## 2024      150356809   2        Male        2014 ElAsly Plus 35
+## 5183      150283660 -29     Unknown           Unified USB 7 GB
+## 6741      143317098   1 Not Entered Business USB 250 unlimited
+## 14526     149894257 -29     Unknown            Red 150 Control
+## 23424     147065280   4        Male           Vodafone Easy 50
+## 23585     147780031   1 Not Entered       2012 Bouquet Ctrl 25
+## 56035     150283661 -29     Unknown           Unified USB 7 GB
+## 58577     147780020   1 Not Entered       2012 Bouquet Ctrl 25
+## 68429     149891714   2           M           Business Flex 30
+## 71211     147780161   1 Not Entered       2012 Bouquet Ctrl 25
+## 74516     149186171 -16        Male          Unified USB 12 GB
+## 84383     150283618 -29     Unknown        Unified USB 1.25 GB
+## 100061    149432741   1 Not Entered          Unified USB 20 GB
+##        VALUE_SEGMENT                    HANDSET_NAME
+## 2024            Core        Samsung Galaxy S III Neo
+## 5183        Med-High                Vodafone K4201-Z
+## 6741            High                Vodafone K4201-Z
+## 14526           High               Samsung Galaxy S4
+## 23424           Core                 Apple iPhone 5S
+## 23585        Med-Low                     Lenovo S850
+## 56035       Med-High                  Vodafone K3765
+## 58577           Core         HTC Desire 616 dual sim
+## 68429           Core Samsung Galaxy Grand Prime DUOS
+## 71211        Med-Low                                
+## 74516           High                Vodafone K4201-Z
+## 84383           Core                  Vodafone K3765
+## 100061          High                    Huawei K3770</code></pre>
+<p>There are 5 observations with a negative age, which is impossible. Also, there are 7 observations with suspiciously small ages ranging from 1 to 4 years.</p>
+<div id="age-values-of-99" class="section level3">
+<h3>Age values of <code>99</code></h3>
+<pre class="r"><code>contractRefDf[contractRefDf$AGE == 99,] %&gt;% nrow</code></pre>
+<pre><code>## [1] 51263</code></pre>
+<p>Almost half the observations in this dataset (51263 out of 107743) have an age value of <code>99</code>, which could be a default value for unknown or not entered ages.</p>
+</div>
+<div id="incomplete-gender-observations" class="section level3">
+<h3>Incomplete <code>GENDER</code> observations</h3>
+<p>More than half the oservations (54379 out of 107743) have missing gender values labeled as <code>Not Entered</code>, while 3148 observations have gender values labeled as <code>Unknown</code>.</p>
+<pre class="r"><code>length(intersect(unique(trainDf$CONTRACT_KEY),unique(contractRefDf[contractRefDf$GENDER == &quot;Not Entered&quot;,]$CONTRACT_KEY)))</code></pre>
+<pre><code>## [1] 38105</code></pre>
+<pre class="r"><code>length(intersect(unique(testDf$CONTRACT_KEY),unique(contractRefDf[contractRefDf$GENDER == &quot;Not Entered&quot;,]$CONTRACT_KEY)))</code></pre>
+<pre><code>## [1] 16274</code></pre>
+<p>The missing observations are not tied to customers of train dataset only or test dataset only as shown above.</p>
+<pre class="r"><code>contractRefDf$GENDER %&gt;% unique</code></pre>
+<pre><code>## [1] Male        Female      Not Entered M           Unknown     F          
+## [7] m           f          
+## Levels: f F Female m M Male Not Entered Unknown</code></pre>
+</div>
 </div>
 </div>
 <div id="progress-tracking" class="section level1">

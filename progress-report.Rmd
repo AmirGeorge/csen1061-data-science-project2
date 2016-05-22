@@ -53,6 +53,32 @@ sapply(contractRefDf, function(x) sum(is.na(x)))
 contractRefDf %>% summary
 ```
 Some weird observations are spotted in this examination. There are negative age values. There are age values at 99 which are highly unlikely. The gender has missing values represented by the levels `Not Entered` and `Unknown`. Gender has duplicate values denoting males which are `Male` and `M`. Same for `Female` and `F`. There are 6 NA observations in the `VALUE_SEGMENT` column, as well as 8169 values of "N/A" which are basically the same as NA values.
+### Unnaturally small age values
+```{r}
+contractRefDf[contractRefDf$AGE < 15,]
+```
+There are 5 observations with a negative age, which is impossible. Also, there are 7 observations with suspiciously small ages ranging from 1 to 4 years.
+
+### Age values of `99`
+```{r}
+contractRefDf[contractRefDf$AGE == 99,] %>% nrow
+```
+Almost half the observations in this dataset (51263 out of 107743) have an age value of `99`, which could be a default value for unknown or not entered ages.
+
+###Incomplete `GENDER` observations
+More than half the oservations (54379 out of 107743) have missing gender values labeled as `Not Entered`, while 3148 observations have gender values labeled as `Unknown`.
+```{r}
+length(intersect(unique(trainDf$CONTRACT_KEY),unique(contractRefDf[contractRefDf$GENDER == "Not Entered",]$CONTRACT_KEY)))
+length(intersect(unique(testDf$CONTRACT_KEY),unique(contractRefDf[contractRefDf$GENDER == "Not Entered",]$CONTRACT_KEY)))
+```
+The missing observations are not tied to customers of train dataset only or test dataset only as shown above.
+```{r}
+contractRefDf$GENDER %>% unique
+```
+Moreover, the male gender has multiple labels (`Male`, `M` & `m`), as well as the female gender (`Female`, `F` & `f`).
+
+###NAs in `VALUE_SEGMENT`
+There are 6 NA observations in the `VALUE_SEGMENT` column, as well as 8169 values of "N/A" which are basically the same as NA values. So, these are all missing values.
 
 
 #Progress tracking
