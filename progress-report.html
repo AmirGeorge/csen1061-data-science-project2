@@ -132,7 +132,7 @@ roamingDf &lt;- read.csv('data/roaming_monthly.csv')</code></pre>
 </div>
 <div id="progress-tracking" class="section level1">
 <h1>Progress tracking</h1>
-<p>In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the <code>scripts</code> folder with the following naming convention: <code>Number-Implementer-Score</code>.</p>
+<p>In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the <code>scripts</code> folder with the following naming convention: <code>Number-Implementer-Score</code>. The code chunks embedded in this section are for illustration purposes only.</p>
 <div id="decisioon-tree-with-merging-all-contract_ref.csv-columns-amir" class="section level2">
 <h2>4- Decisioon Tree with merging all <code>contract_ref.csv</code> columns (Amir)</h2>
 <p>By continuing on number <code>1</code> above (Decision Tree classifier), I merged with all columns from <code>contract_ref.csv</code>, and obtained a score of <code>0.57585</code>, which is a decrease from the original score, so this approach was neglected.</p>
@@ -151,23 +151,137 @@ roamingDf &lt;- read.csv('data/roaming_monthly.csv')</code></pre>
 </div>
 <div id="neural-network-with-weighted-monthly-usages-amir" class="section level2">
 <h2>10- Neural Network with weighted monthly usages (Amir)</h2>
-<p>By continuing on number <code>8</code> above (NN classifier), an approach was tried to weigh all monthly usages. The intuition was that the last month would be the most important month, followed by the second to last month and so on. This was implemented by multiplying the usage columns in the last 4 months by values ranging from 2 to 5. A low score of <code>0.50587</code> was obtained as a result, so this approach was neglected. I suspect that the intuition itself could be sound but the way in which it was implemented was responsible for the decreased score.</p>
+<p>By continuing on number <code>8</code> above (NN classifier), an approach was tried to weigh all monthly usages. The intuition was that the last month would be the most important month, followed by the second to last month and so on. This was implemented by multiplying the usage columns in the last 4 months by values ranging from 2 to 5.</p>
+<pre class="r"><code>trainDf &lt;- trainDf %&gt;% mutate(X207_USAGE=X207_USAGE*2, X208_USAGE=X208_USAGE*3, 
+                             X209_USAGE=X209_USAGE*4,X210_USAGE=X210_USAGE*5)
+testDf &lt;- testDf %&gt;% mutate(X207_USAGE=X207_USAGE*2, X208_USAGE=X208_USAGE*3, 
+                             X209_USAGE=X209_USAGE*4,X210_USAGE=X210_USAGE*5)</code></pre>
+<p>A low score of <code>0.50587</code> was obtained as a result, so this approach was neglected. I suspect that the intuition itself could be sound but the way in which it was implemented was responsible for the decreased score.</p>
 </div>
 <div id="neural-network-with-only-last-month-data-amir" class="section level2">
 <h2>11- Neural Network with only last month data (Amir)</h2>
-<p>By continuing on number <code>8</code> above (NN classifier), an approach was tried to only depend on the data from the last month, and neglect all the usage and session count columns from the first four months. A score of <code>0.62686</code> was obtained which is surprisingly not much less than the original score of <code>0.63391</code>. But due to it being a lesser score, the approach was neglected.</p>
+<p>By continuing on number <code>8</code> above (NN classifier), an approach was tried to only depend on the data from the last month, and neglect all the usage and session count columns from the first four months.</p>
+<pre class="r"><code>trainKeeps &lt;- c(&quot;CONTRACT_KEY&quot;,&quot;X210_SESSION_COUNT&quot;,&quot;X210_USAGE&quot;,&quot;TARGET&quot;)
+trainDf &lt;- trainDf[trainKeeps]
+testKeeps &lt;- c(&quot;CONTRACT_KEY&quot;,&quot;X210_SESSION_COUNT&quot;,&quot;X210_USAGE&quot;)
+testDf &lt;- testDf[testKeeps]</code></pre>
+<p>A score of <code>0.62686</code> was obtained which is surprisingly not much less than the original score of <code>0.63391</code>. But due to it being a lesser score, the approach was neglected.</p>
 </div>
 <div id="neural-network-with-removing-contract_key-from-predictions-amir" class="section level2">
 <h2>12- Neural Network with removing <code>CONTRACT_KEY</code> from predictions (Amir)</h2>
 <p>I realized that the <code>CONTRACT_KEY</code> in both the train and test datasets factored as an integer in the predictions, which does not make sense at all. So, by removing it from predictions, an improved score of <code>0.65550</code> was obtained with the NN classifier. So, this approach is taken into account from now on.</p>
 </div>
-<div id="integrating-roaming-data-amir" class="section level2">
-<h2>13- Integrating roaming data (Amir)</h2>
-<p>Buidling on the approach in <code>12</code>, I integrated with the roaming data from the <code>roaming_monthly.csv</code> file. For both the train and test datasets, 10 extra columns were added as the roaming usage and roaming number of sessions for each of the 5 months. The values of these columns were extracted from <code>roaming_monthly.csv</code>. By factoring them into the prediction, an improved score of <code>0.67939</code> was reached. So, this approach is implemented from now on.</p>
+<div id="feature-extraction-to-integrating-roaming-data-amir" class="section level2">
+<h2>13- Feature extraction to integrating roaming data (Amir)</h2>
+<p>Buidling on the approach in <code>12</code>, I integrated with the roaming data from the <code>roaming_monthly.csv</code> file. For both the train and test datasets, 10 extra features were added as the roaming usage and roaming number of sessions for each of the 5 months. The values of these columns were extracted from <code>roaming_monthly.csv</code>.</p>
+<pre class="r"><code>trainRoamDf &lt;- trainDf
+trainRoamDf[,&quot;R206_USAGE&quot;] &lt;- 0
+trainRoamDf[,&quot;R206_SESSION_COUNT&quot;] &lt;- 0
+trainRoamDf[,&quot;R207_USAGE&quot;] &lt;- 0
+trainRoamDf[,&quot;R207_SESSION_COUNT&quot;] &lt;- 0
+trainRoamDf[,&quot;R208_USAGE&quot;] &lt;- 0
+trainRoamDf[,&quot;R208_SESSION_COUNT&quot;] &lt;- 0
+trainRoamDf[,&quot;R209_USAGE&quot;] &lt;- 0
+trainRoamDf[,&quot;R209_SESSION_COUNT&quot;] &lt;- 0
+trainRoamDf[,&quot;R210_USAGE&quot;] &lt;- 0
+trainRoamDf[,&quot;R210_SESSION_COUNT&quot;] &lt;- 0
+
+testRoamDf &lt;- testDf
+testRoamDf[,&quot;R206_USAGE&quot;] &lt;- 0
+testRoamDf[,&quot;R206_SESSION_COUNT&quot;] &lt;- 0
+testRoamDf[,&quot;R207_USAGE&quot;] &lt;- 0
+testRoamDf[,&quot;R207_SESSION_COUNT&quot;] &lt;- 0
+testRoamDf[,&quot;R208_USAGE&quot;] &lt;- 0
+testRoamDf[,&quot;R208_SESSION_COUNT&quot;] &lt;- 0
+testRoamDf[,&quot;R209_USAGE&quot;] &lt;- 0
+testRoamDf[,&quot;R209_SESSION_COUNT&quot;] &lt;- 0
+testRoamDf[,&quot;R210_USAGE&quot;] &lt;- 0
+testRoamDf[,&quot;R210_SESSION_COUNT&quot;] &lt;- 0
+
+for (k in unique(roamingDf$CONTRACT_KEY)) {
+  orig &lt;- roamingDf[roamingDf$CONTRACT_KEY==k,]
+  if (trainRoamDf[trainRoamDf$CONTRACT_KEY==k,] %&gt;% nrow &gt; 0) {
+    val &lt;- orig[orig$CALL_MONTH_KEY == 206,]
+    if (nrow(val) &gt; 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R206_USAGE&quot;] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R206_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+    val &lt;- orig[orig$CALL_MONTH_KEY == 207,]
+    if (nrow(val) &gt; 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R207_USAGE&quot;] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R207_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+    val &lt;- orig[orig$CALL_MONTH_KEY == 208,]
+    if (nrow(val) &gt; 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R208_USAGE&quot;] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R208_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+    val &lt;- val[val$CALL_MONTH_KEY == 209,]
+    if (nrow(val) &gt; 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R209_USAGE&quot;] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R209_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+    val &lt;- orig[orig$CALL_MONTH_KEY == 210,]
+    if (nrow(val) &gt; 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R210_USAGE&quot;] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,&quot;R210_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+  }
+  else {
+    val &lt;- orig[orig$CALL_MONTH_KEY == 206,]
+    if (nrow(val) &gt; 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R206_USAGE&quot;] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R206_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+    val &lt;- orig[orig$CALL_MONTH_KEY == 207,]
+    if (nrow(val) &gt; 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R207_USAGE&quot;] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R207_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+    val &lt;- orig[orig$CALL_MONTH_KEY == 208,]
+    if (nrow(val) &gt; 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R208_USAGE&quot;] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R208_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+    val &lt;- val[val$CALL_MONTH_KEY == 209,]
+    if (nrow(val) &gt; 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R209_USAGE&quot;] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R209_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+    val &lt;- orig[orig$CALL_MONTH_KEY == 210,]
+    if (nrow(val) &gt; 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R210_USAGE&quot;] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,&quot;R210_SESSION_COUNT&quot;] = val$SESSION_COUNT
+    }
+  }
+}</code></pre>
+<p>By factoring them into the prediction, an improved score of <code>0.67939</code> was reached. So, this approach is implemented from now on.</p>
 </div>
 <div id="adjustment-to-roaming-data-amir" class="section level2">
 <h2>14- Adjustment to roaming data (Amir)</h2>
-<p>Buidling on the approach in <code>13</code>, I implemented a small adjustment by subtracting the newly added monthly roaming data from original total mothly data, so that the original usage and session count columns would now describe local data only. The score improved to <code>0.68188</code> which makes sense. So, this approach is implemented from now on.</p>
+<p>Buidling on the approach in <code>13</code>, I implemented a small adjustment by subtracting the newly added monthly roaming data from original total mothly data, so that the original usage and session count columns would now describe local data only.</p>
+<pre class="r"><code>trainRoamDf &lt;- trainRoamDf %&gt;% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
+                                      X206_USAGE = X206_USAGE - R206_USAGE,
+                                      X207_SESSION_COUNT = X207_SESSION_COUNT - R207_SESSION_COUNT,
+                                      X207_USAGE = X207_USAGE - R207_USAGE,
+                                      X208_SESSION_COUNT = X208_SESSION_COUNT - R208_SESSION_COUNT,
+                                      X208_USAGE = X208_USAGE - R208_USAGE,
+                                      X209_SESSION_COUNT = X209_SESSION_COUNT - R209_SESSION_COUNT,
+                                      X209_USAGE = X209_USAGE - R209_USAGE,
+                                      X210_SESSION_COUNT = X210_SESSION_COUNT - R210_SESSION_COUNT,
+                                      X210_USAGE = X210_USAGE - R210_USAGE)
+
+testRoamDf &lt;- testRoamDf %&gt;% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
+                                      X206_USAGE = X206_USAGE - R206_USAGE,
+                                      X207_SESSION_COUNT = X207_SESSION_COUNT - R207_SESSION_COUNT,
+                                      X207_USAGE = X207_USAGE - R207_USAGE,
+                                      X208_SESSION_COUNT = X208_SESSION_COUNT - R208_SESSION_COUNT,
+                                      X208_USAGE = X208_USAGE - R208_USAGE,
+                                      X209_SESSION_COUNT = X209_SESSION_COUNT - R209_SESSION_COUNT,
+                                      X209_USAGE = X209_USAGE - R209_USAGE,
+                                      X210_SESSION_COUNT = X210_SESSION_COUNT - R210_SESSION_COUNT,
+                                      X210_USAGE = X210_USAGE - R210_USAGE)</code></pre>
+<p>The score improved to <code>0.68188</code> which makes sense. So, this approach is implemented from now on.</p>
 </div>
 <div id="adding-rate_plan-feature-amir" class="section level2">
 <h2>15- Adding <code>RATE_PLAN</code> feature (Amir)</h2>

@@ -22,7 +22,7 @@ roamingDf <- read.csv('data/roaming_monthly.csv')
 ```
 
 #Progress tracking
-In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`. 
+In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`. The code chunks embedded in this section are for illustration purposes only.
 
 ##4- Decisioon Tree with merging all `contract_ref.csv` columns (Amir)
 By continuing on number `1` above (Decision Tree classifier), I merged with all columns from `contract_ref.csv`, and obtained a score of `0.57585`, which is a decrease from the original score, so this approach was neglected.
@@ -37,19 +37,141 @@ By trying on on the Support Vector Machine (SMO) classifier, a score of `0.50000
 By continuing on number `8` above (NN classifier), I removed all `SESSION_COUNT` from the prediction. The intuition behind this approach is that `USAGE` is the main concern here. However, a decreased score of `0.58118` was obtained, proving that session count indeed matters, and the approach here was neglected.
 
 ##10- Neural Network with weighted monthly usages (Amir)
-By continuing on number `8` above (NN classifier), an approach was tried to weigh all monthly usages. The intuition was that the last month would be the most important month, followed by the second to last month and so on. This was implemented by multiplying the usage columns in the last 4 months by values ranging from 2 to 5. A low score of `0.50587` was obtained as a result, so this approach was neglected. I suspect that the intuition itself could be sound but the way in which it was implemented was responsible for the decreased score.
+By continuing on number `8` above (NN classifier), an approach was tried to weigh all monthly usages. The intuition was that the last month would be the most important month, followed by the second to last month and so on. This was implemented by multiplying the usage columns in the last 4 months by values ranging from 2 to 5.
+```{r eval=FALSE}
+trainDf <- trainDf %>% mutate(X207_USAGE=X207_USAGE*2, X208_USAGE=X208_USAGE*3, 
+                             X209_USAGE=X209_USAGE*4,X210_USAGE=X210_USAGE*5)
+testDf <- testDf %>% mutate(X207_USAGE=X207_USAGE*2, X208_USAGE=X208_USAGE*3, 
+                             X209_USAGE=X209_USAGE*4,X210_USAGE=X210_USAGE*5)
+```
+A low score of `0.50587` was obtained as a result, so this approach was neglected. I suspect that the intuition itself could be sound but the way in which it was implemented was responsible for the decreased score.
 
 ##11- Neural Network with only last month data (Amir)
-By continuing on number `8` above (NN classifier), an approach was tried to only depend on the data from the last month, and neglect all the usage and session count columns from the first four months. A score of `0.62686` was obtained which is surprisingly not much less than the original score of `0.63391`. But due to it being a lesser score, the approach was neglected.
+By continuing on number `8` above (NN classifier), an approach was tried to only depend on the data from the last month, and neglect all the usage and session count columns from the first four months.
+```{r eval=FALSE}
+trainKeeps <- c("CONTRACT_KEY","X210_SESSION_COUNT","X210_USAGE","TARGET")
+trainDf <- trainDf[trainKeeps]
+testKeeps <- c("CONTRACT_KEY","X210_SESSION_COUNT","X210_USAGE")
+testDf <- testDf[testKeeps]
+```
+A score of `0.62686` was obtained which is surprisingly not much less than the original score of `0.63391`. But due to it being a lesser score, the approach was neglected.
 
 ##12- Neural Network with removing `CONTRACT_KEY` from predictions (Amir)
 I realized that the `CONTRACT_KEY` in both the train and test datasets factored as an integer in the predictions, which does not make sense at all. So, by removing it from predictions, an improved score of `0.65550` was obtained with the NN classifier. So, this approach is taken into account from now on.
 
-##13- Integrating roaming data (Amir)
-Buidling on the approach in `12`, I integrated with the roaming data from the `roaming_monthly.csv` file. For both the train and test datasets, 10 extra columns were added as the roaming usage and roaming number of sessions for each of the 5 months. The values of these columns were extracted from `roaming_monthly.csv`. By factoring them into the prediction, an improved score of `0.67939` was reached. So, this approach is implemented from now on.
+##13- Feature extraction to integrating roaming data (Amir)
+Buidling on the approach in `12`, I integrated with the roaming data from the `roaming_monthly.csv` file. For both the train and test datasets, 10 extra features were added as the roaming usage and roaming number of sessions for each of the 5 months. The values of these columns were extracted from `roaming_monthly.csv`.
+``` {r eval = FALSE}
+trainRoamDf <- trainDf
+trainRoamDf[,"R206_USAGE"] <- 0
+trainRoamDf[,"R206_SESSION_COUNT"] <- 0
+trainRoamDf[,"R207_USAGE"] <- 0
+trainRoamDf[,"R207_SESSION_COUNT"] <- 0
+trainRoamDf[,"R208_USAGE"] <- 0
+trainRoamDf[,"R208_SESSION_COUNT"] <- 0
+trainRoamDf[,"R209_USAGE"] <- 0
+trainRoamDf[,"R209_SESSION_COUNT"] <- 0
+trainRoamDf[,"R210_USAGE"] <- 0
+trainRoamDf[,"R210_SESSION_COUNT"] <- 0
+
+testRoamDf <- testDf
+testRoamDf[,"R206_USAGE"] <- 0
+testRoamDf[,"R206_SESSION_COUNT"] <- 0
+testRoamDf[,"R207_USAGE"] <- 0
+testRoamDf[,"R207_SESSION_COUNT"] <- 0
+testRoamDf[,"R208_USAGE"] <- 0
+testRoamDf[,"R208_SESSION_COUNT"] <- 0
+testRoamDf[,"R209_USAGE"] <- 0
+testRoamDf[,"R209_SESSION_COUNT"] <- 0
+testRoamDf[,"R210_USAGE"] <- 0
+testRoamDf[,"R210_SESSION_COUNT"] <- 0
+
+for (k in unique(roamingDf$CONTRACT_KEY)) {
+  orig <- roamingDf[roamingDf$CONTRACT_KEY==k,]
+  if (trainRoamDf[trainRoamDf$CONTRACT_KEY==k,] %>% nrow > 0) {
+    val <- orig[orig$CALL_MONTH_KEY == 206,]
+    if (nrow(val) > 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R206_USAGE"] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R206_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+    val <- orig[orig$CALL_MONTH_KEY == 207,]
+    if (nrow(val) > 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R207_USAGE"] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R207_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+    val <- orig[orig$CALL_MONTH_KEY == 208,]
+    if (nrow(val) > 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R208_USAGE"] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R208_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+    val <- val[val$CALL_MONTH_KEY == 209,]
+    if (nrow(val) > 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R209_USAGE"] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R209_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+    val <- orig[orig$CALL_MONTH_KEY == 210,]
+    if (nrow(val) > 0) {
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R210_USAGE"] = val$USAGE
+      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R210_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+  }
+  else {
+    val <- orig[orig$CALL_MONTH_KEY == 206,]
+    if (nrow(val) > 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R206_USAGE"] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R206_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+    val <- orig[orig$CALL_MONTH_KEY == 207,]
+    if (nrow(val) > 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R207_USAGE"] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R207_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+    val <- orig[orig$CALL_MONTH_KEY == 208,]
+    if (nrow(val) > 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R208_USAGE"] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R208_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+    val <- val[val$CALL_MONTH_KEY == 209,]
+    if (nrow(val) > 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R209_USAGE"] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R209_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+    val <- orig[orig$CALL_MONTH_KEY == 210,]
+    if (nrow(val) > 0) {
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R210_USAGE"] = val$USAGE
+      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R210_SESSION_COUNT"] = val$SESSION_COUNT
+    }
+  }
+}
+```
+By factoring them into the prediction, an improved score of `0.67939` was reached. So, this approach is implemented from now on.
 
 ##14- Adjustment to roaming data (Amir)
-Buidling on the approach in `13`, I implemented a small adjustment by subtracting the newly added monthly roaming data from original total mothly data, so that the original usage and session count columns would now describe local data only. The score improved to `0.68188` which makes sense. So, this approach is implemented from now on.
+Buidling on the approach in `13`, I implemented a small adjustment by subtracting the newly added monthly roaming data from original total mothly data, so that the original usage and session count columns would now describe local data only. 
+```{r eval=FALSE}
+trainRoamDf <- trainRoamDf %>% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
+                                      X206_USAGE = X206_USAGE - R206_USAGE,
+                                      X207_SESSION_COUNT = X207_SESSION_COUNT - R207_SESSION_COUNT,
+                                      X207_USAGE = X207_USAGE - R207_USAGE,
+                                      X208_SESSION_COUNT = X208_SESSION_COUNT - R208_SESSION_COUNT,
+                                      X208_USAGE = X208_USAGE - R208_USAGE,
+                                      X209_SESSION_COUNT = X209_SESSION_COUNT - R209_SESSION_COUNT,
+                                      X209_USAGE = X209_USAGE - R209_USAGE,
+                                      X210_SESSION_COUNT = X210_SESSION_COUNT - R210_SESSION_COUNT,
+                                      X210_USAGE = X210_USAGE - R210_USAGE)
+
+testRoamDf <- testRoamDf %>% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
+                                      X206_USAGE = X206_USAGE - R206_USAGE,
+                                      X207_SESSION_COUNT = X207_SESSION_COUNT - R207_SESSION_COUNT,
+                                      X207_USAGE = X207_USAGE - R207_USAGE,
+                                      X208_SESSION_COUNT = X208_SESSION_COUNT - R208_SESSION_COUNT,
+                                      X208_USAGE = X208_USAGE - R208_USAGE,
+                                      X209_SESSION_COUNT = X209_SESSION_COUNT - R209_SESSION_COUNT,
+                                      X209_USAGE = X209_USAGE - R209_USAGE,
+                                      X210_SESSION_COUNT = X210_SESSION_COUNT - R210_SESSION_COUNT,
+                                      X210_USAGE = X210_USAGE - R210_USAGE)
+```
+The score improved to `0.68188` which makes sense. So, this approach is implemented from now on.
 
 ##15- Adding `RATE_PLAN` feature (Amir)
 Building on `14`, I added the `RATE_PLAN` feature from `contract_ref` in the model prediction. Building this model took several hours on my local machine, which was expected due to the large number of levels for this feature (183 levels). However, this largely sabotaged the prediction process as a minimum score of `0.50000` resulted from this approach. This indicated that some feature engineering needs to be done on this feature and all features in `contract_ref` in general to obtain more useful parameters.
