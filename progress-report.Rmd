@@ -310,3 +310,40 @@ Building on `14`, I added the `RATE_PLAN` feature from `contract_ref` in the mod
 
 ##16- Adaboosting with NN as base classifier (Amir)
 Buidling on `14`, instead of using NN base classifier, I used boosting with `AdaboostM1` and with NN as its base classifier. Surprisingly, I obtained a score of `0.67495` which is less than the one obtained with the base classifier only.
+
+##17- Analysing the `GENDER` from `contract_ref` (Tony)
+Let's check all the possible values that exist:
+```{r}
+contractRefDf$GENDER %>% unique
+```
+As we can see, we have 3 different values representing a "Female" gender ("f", "F" and "Female"). Also for the "Male" gender we have 3 different values for it ("m", "M" and "Male"). There are also 2 other values representing a gender not entered (or unknown), which reflects the same meaning ("Not Entered" and "Unknown").
+We shall combine them into their corresponding 3 main categories ("Female", "Male" and "Unknown").
+```{r}
+contractRefDf$GENDER[contractRefDf$GENDER == "f"] <- "Female"
+contractRefDf$GENDER[contractRefDf$GENDER == "F"] <- "Female"
+contractRefDf$GENDER[contractRefDf$GENDER == "m"] <- "Male"
+contractRefDf$GENDER[contractRefDf$GENDER == "M"] <- "Male"
+contractRefDf$GENDER[contractRefDf$GENDER == "Not Entered"] <- "Unknown"
+```
+So adding the `GENDER` to the predicitions after the above modifications, we get a score of `0.66270` (less than the last state before adding the `GENDER` to the predictions).
+
+##18- Analysing the `VALUE_SEGMENT` from `contract_ref` (Tony)
+Let's check the unique values for the value segment:
+```{r}
+contractRefDf$VALUE_SEGMENT %>% unique
+```
+As we can see, we have some NAs in addition to "N/A" values. So let's merge them together.
+```{r}
+contractRefDf$VALUE_SEGMENT[is.na(contractRefDf$VALUE_SEGMENT)] <- "N/A"
+```
+
+##19- Analysing and extracting new features from `RATE_PLAN` (Tony)
+As it was mentioned before, a large number of levels exist for such feature.
+```{r}
+contractRefDf$RATE_PLAN %>% unique %>% length
+```
+Now getting to know the different unique values for the `RATE_PLAN`
+```{R}
+contractRefDf$RATE_PLAN %>% unique
+```
+We can see that there are some similarities within some of those different values that would reflect the same info/value. For example, *2013 Business El Asly 30* and *2014 Business El Asly 30* are two different `RATE_PLAN` values that mainly reflect the same rate plan but for different years. Hence, one of the things to be done, is to discard the year value from the `RATE_PAN`.
