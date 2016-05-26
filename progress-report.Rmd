@@ -492,14 +492,26 @@ As we can see, almost half of the customers have a `VALUE_SEGMENT` of `Core` whi
 
 Adding the `VALUE_SEGMENT` to the predicitons now yields a score of `0.63465`, which is not an improvement.
 
-##TODO- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 2 (Tony)
-Let's try only excluding the year value from the `RATE_PLAN` and see whether the predicitons results would be postively/negatively affected.
+##23- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 2 (Tony)
+Let's try to extract the moneytary value from the `RATE_PLAN` and then include it in the predictions, in a new column/attribute `RATE_PLAN_VALUE`.
+
+First, let's remove the year value:
 ```{r}
-contractRefDf$RATE_PLAN <- gsub("[2][0][0-9][0-9] ", "", contractRefDf$RATE_PLAN)
-contractRefDf$RATE_PLAN <- as.factor(contractRefDf$RATE_PLAN)
+contractRefDf <- contractRefDf %>% mutate(RATE_PLAN_VALUE = gsub("[2][0][0-9][0-9] ", "", contractRefDf$RATE_PLAN))
 ```
-Let's check now the number of `RATE_PLAN` levels.
+Next, let's remove the GBs size of the plan:
 ```{r}
-contractRefDf$RATE_PLAN %>% unique %>% length
+contractRefDf$RATE_PLAN_VALUE <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDf$RATE_PLAN_VALUE)
 ```
-Adding the `RATE_PLAN` to the predicitions, the score becomes ***Results***
+Now, any numberiacal value existing in the `RATE_PLAN` is the moneytary value we want.
+So let's remove any other parts and just keep the number(s), and get the mean in case of multiple values (hybrid plans):
+```{r}
+contractRefDf$RATE_PLAN_VALUE <- gsub(" [a-zA-Z]+", "", contractRefDf$RATE_PLAN_VALUE)
+contractRefDf$RATE_PLAN_VALUE <- gsub("[a-zA-Z]+ ", "", contractRefDf$RATE_PLAN_VALUE)
+contractRefDf$RATE_PLAN_VALUE <- as.factor(contractRefDf$RATE_PLAN_VALUE)
+```
+Let's check now the number of `RATE_PLAN_VALUE` levels.
+```{r}
+contractRefDf$RATE_PLAN_VALUE %>% unique %>% length
+```
+Adding the `RATE_PLAN_VALUE` to the predicitions yields a score of `0.64236`.

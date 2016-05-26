@@ -2978,15 +2978,21 @@ vs_frequencies</code></pre>
 <p>As we can see, almost half of the customers have a <code>VALUE_SEGMENT</code> of <code>Core</code> which is the dominant one.</p>
 <p>Adding the <code>VALUE_SEGMENT</code> to the predicitons now yields a score of <code>0.63465</code>, which is not an improvement.</p>
 </div>
-<div id="todo--analysing-and-extracting-new-features-from-rate_plan-and-adding-it-to-the-predictions---trial-2-tony" class="section level2">
-<h2>TODO- Analysing and extracting new features from <code>RATE_PLAN</code> and adding it to the predictions - Trial 2 (Tony)</h2>
-<p>Let’s try only excluding the year value from the <code>RATE_PLAN</code> and see whether the predicitons results would be postively/negatively affected.</p>
-<pre class="r"><code>contractRefDf$RATE_PLAN &lt;- gsub(&quot;[2][0][0-9][0-9] &quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
-contractRefDf$RATE_PLAN &lt;- as.factor(contractRefDf$RATE_PLAN)</code></pre>
-<p>Let’s check now the number of <code>RATE_PLAN</code> levels.</p>
-<pre class="r"><code>contractRefDf$RATE_PLAN %&gt;% unique %&gt;% length</code></pre>
-<pre><code>## [1] 174</code></pre>
-<p>Adding the <code>RATE_PLAN</code> to the predicitions, the score becomes <strong><em>Results</em></strong></p>
+<div id="analysing-and-extracting-new-features-from-rate_plan-and-adding-it-to-the-predictions---trial-2-tony" class="section level2">
+<h2>23- Analysing and extracting new features from <code>RATE_PLAN</code> and adding it to the predictions - Trial 2 (Tony)</h2>
+<p>Let’s try to extract the moneytary value from the <code>RATE_PLAN</code> and then include it in the predictions, in a new column/attribute <code>RATE_PLAN_VALUE</code>.</p>
+<p>First, let’s remove the year value:</p>
+<pre class="r"><code>contractRefDf &lt;- contractRefDf %&gt;% mutate(RATE_PLAN_VALUE = gsub(&quot;[2][0][0-9][0-9] &quot;, &quot;&quot;, contractRefDf$RATE_PLAN))</code></pre>
+<p>Next, let’s remove the GBs size of the plan:</p>
+<pre class="r"><code>contractRefDf$RATE_PLAN_VALUE &lt;- gsub(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, &quot;&quot;, contractRefDf$RATE_PLAN_VALUE)</code></pre>
+<p>Now, any numberiacal value existing in the <code>RATE_PLAN</code> is the moneytary value we want. So let’s remove any other parts and just keep the number(s), and get the mean in case of multiple values (hybrid plans):</p>
+<pre class="r"><code>contractRefDf$RATE_PLAN_VALUE &lt;- gsub(&quot; [a-zA-Z]+&quot;, &quot;&quot;, contractRefDf$RATE_PLAN_VALUE)
+contractRefDf$RATE_PLAN_VALUE &lt;- gsub(&quot;[a-zA-Z]+ &quot;, &quot;&quot;, contractRefDf$RATE_PLAN_VALUE)
+contractRefDf$RATE_PLAN_VALUE &lt;- as.factor(contractRefDf$RATE_PLAN_VALUE)</code></pre>
+<p>Let’s check now the number of <code>RATE_PLAN_VALUE</code> levels.</p>
+<pre class="r"><code>contractRefDf$RATE_PLAN_VALUE %&gt;% unique %&gt;% length</code></pre>
+<pre><code>## [1] 62</code></pre>
+<p>Adding the <code>RATE_PLAN_VALUE</code> to the predicitions yields a score of <code>0.64236</code>.</p>
 </div>
 </div>
 
