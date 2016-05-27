@@ -612,7 +612,7 @@ contractRefDf$GENDER[contractRefDf$GENDER == &quot;Not Entered&quot;] &lt;- &quo
 <p>As it was mentioned before, a large number of levels exist for such feature.</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN %&gt;% unique %&gt;% length</code></pre>
 <pre><code>## [1] 183</code></pre>
-<p>Now getting to know the different unique values for the <code>RATE_PLAN</code></p>
+<p>Now getting to know the different unique values for the <code>RATE_PLAN</code>:</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN %&gt;% unique</code></pre>
 <pre><code>##   [1] Vodafone Easy 50               Flex 40                       
 ##   [3] Business USB 250 unlimited     Red 300                       
@@ -712,7 +712,52 @@ contractRefDf$GENDER[contractRefDf$GENDER == &quot;Not Entered&quot;] &lt;- &quo
 contractRefDf$RATE_PLAN &lt;- gsub(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN &lt;- gsub(&quot; [0-9]+&quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN &lt;- as.factor(contractRefDf$RATE_PLAN)</code></pre>
-<p>Let’s check now the number of <code>RATE_PLAN</code> levels.</p>
+<p>Let’s see the different levels in the <code>RATE_PLAN</code> how they look now:</p>
+<pre class="r"><code>contractRefDf$RATE_PLAN %&gt;% unique</code></pre>
+<pre><code>##  [1] Vodafone Easy                 Flex                         
+##  [3] Business USB unlimited        Red                          
+##  [5] Business Flex                 Business El Asly             
+##  [7] Flex Hybrid CL                POS Rate Plan                
+##  [9] Enterprise Shared Data Bundle Ostooly                      
+## [11] Business Red                  Arabeety                     
+## [13] Red Control                   ElAsly Plus                  
+## [15] Bouquet Revamp                Business USB Control         
+## [17] Bouquet Ctrl                  Unified USB                  
+## [19] VF Data Solution              VPN Partners                 
+## [21] Flex CL                       Employee VPN                 
+## [23] Ostooly Plus                  Business Use VPN             
+## [25] Flex Business                 Bouquet Ctrl Revamp          
+## [27] Bouquet                       RED Traveler                 
+## [29] Employee VPN with Desk phone  Upper Egypt Tariff CTRL      
+## [31] ElAsly plus Bill Limit        Employee VPN Control         
+## [33] New Bouquet                   Business USB                 
+## [35] RED Classic                   New Business Bouquet Max     
+## [37] TE Extra Control              Data Wallet                  
+## [39] Bouquet Ctrl Flat             RED Him                      
+## [41] Tailored handheld tariff      Bouquet MAX                  
+## [43] Arabeety Consumer             RED Her                      
+## [45] Flex open                     TE Basic Control             
+## [47] V2V Control                   New Bouquet Ctrl             
+## [49] Super                         New Bouquet Intra            
+## [51] Bouquet Ctrl MAX              Business Ass. Engineering    
+## [53] Ostooly Advance               Tailored laptop tariff       
+## [55] Vodafone Business             New Bouquet Ctrl Intra       
+## [57] MAC Carpet                    New VF Data business         
+## [59] Unlimited Data Business       Control                      
+## [61] Business Unified USB          V2V                          
+## [63] Super Downloader              USB Business Time            
+## [65] Business Bouquet              Super Streamer               
+## [67] Business Tafseel Control      Arabeety Voice               
+## [69] Bouquet ESDB                  New Bouquet Max CTRL         
+## [71] Business Bouquet Control      Unlimited Data               
+## [73] Bouquet Max CTRL              Open                         
+## [75] New Vodafone Business         VIP                          
+## [77] Arabeety Plus                 Super Browser                
+## [79] Vodafone line bronze bundle   Browser Unlmtd Data Business 
+## [81] Open Calls                    Business Bouquet Max         
+## [83] New Bouquet ESDB             
+## 83 Levels: Arabeety Arabeety Consumer Arabeety Plus ... VPN Partners</code></pre>
+<p>Let’s check now the number of <code>RATE_PLAN</code> levels:</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN %&gt;% unique %&gt;% length</code></pre>
 <pre><code>## [1] 83</code></pre>
 <p>As we can see, the impact was remarkable; as the <code>RATE_PLAN</code> levels dropped from 183 to 83 only. However, adding it to the predictions, the score has decreased to <code>0.58943</code>. Hence, this approach has to be excluded for the moment until further feature engineering concerning the <code>RATE_PLAN</code> are applied.</p>
@@ -2989,10 +3034,33 @@ vs_frequencies</code></pre>
 <pre class="r"><code>contractRefDf$RATE_PLAN_VALUE &lt;- gsub(&quot; [a-zA-Z]+&quot;, &quot;&quot;, contractRefDf$RATE_PLAN_VALUE)
 contractRefDf$RATE_PLAN_VALUE &lt;- gsub(&quot;[a-zA-Z]+ &quot;, &quot;&quot;, contractRefDf$RATE_PLAN_VALUE)
 contractRefDf$RATE_PLAN_VALUE &lt;- as.factor(contractRefDf$RATE_PLAN_VALUE)</code></pre>
-<p>Let’s check now the number of <code>RATE_PLAN_VALUE</code> levels.</p>
+<p>Let’s see the different levels in the <code>RATE_PLAN_VALUE</code> how they look:</p>
+<pre class="r"><code>contractRefDf$RATE_PLAN_VALUE %&gt;% unique</code></pre>
+<pre><code>##  [1] 50         40         250        300        35         150       
+##  [7] 100        30         40 50      POS        Enterprise 110       
+## [13] Ostooly    Arabeety   60         75         25         350       
+## [19] Unified    VPN        20 50      60 100     60 150     40 100    
+## [25] 80 100     Employee   65         20         Business   500       
+## [31] Flex       80 150     RED        Upper      550        200       
+## [37] 90 100     90         TE         Data       59         Tailored  
+## [43] 400        V2V        80         45 100     45         5         
+## [49] Business.  Vodafone   80 200     MAC        90 150     120       
+## [55]  75        Super      499        199        New        VIP       
+## [61] Browser    399       
+## 62 Levels:  75 100 110 120 150 199 20 20 50 200 25 250 30 300 35 ... VPN</code></pre>
+<p>Let’s check now the number of <code>RATE_PLAN_VALUE</code> levels:</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN_VALUE %&gt;% unique %&gt;% length</code></pre>
 <pre><code>## [1] 62</code></pre>
 <p>Adding the <code>RATE_PLAN_VALUE</code> to the predicitions yields a score of <code>0.64236</code>.</p>
+</div>
+<div id="adding-the-approaches-of-the-2-trials-of-extracting-features-from-the-rate_plan-in-the-contractrefdf-tony" class="section level2">
+<h2>24- Adding the approaches of the 2 trials of extracting features from the <code>RATE_PLAN</code> in the <code>contractRefDf</code> (Tony)</h2>
+<p>So building on 23 and applying what was done in 18 by updating the <code>RATE_PLAN</code> as follows: Discarding the year value from the <code>RATE_PLAN</code> in addition to the other numerical values such as the amount of GBs and the rate plan monetary value.</p>
+<pre class="r"><code>contractRefDf$RATE_PLAN &lt;- gsub(&quot;[2][0][0-9][0-9] &quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
+contractRefDf$RATE_PLAN &lt;- gsub(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
+contractRefDf$RATE_PLAN &lt;- gsub(&quot; [0-9]+&quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
+contractRefDf$RATE_PLAN &lt;- as.factor(contractRefDf$RATE_PLAN)</code></pre>
+<p>So adding both the updated <code>RATE_PLAN</code> and the <code>RATE_PLAN_VALUE</code> (calculated in 22) together to the predictions, we obtain a minimum score of <code>0.50000</code>.</p>
 </div>
 </div>
 

@@ -333,7 +333,7 @@ As it was mentioned before, a large number of levels exist for such feature.
 ```{r}
 contractRefDf$RATE_PLAN %>% unique %>% length
 ```
-Now getting to know the different unique values for the `RATE_PLAN`
+Now getting to know the different unique values for the `RATE_PLAN`:
 ```{R}
 contractRefDf$RATE_PLAN %>% unique
 ```
@@ -345,7 +345,11 @@ contractRefDf$RATE_PLAN <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDf$RATE
 contractRefDf$RATE_PLAN <- gsub(" [0-9]+", "", contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN <- as.factor(contractRefDf$RATE_PLAN)
 ```
-Let's check now the number of `RATE_PLAN` levels.
+Let's see the different levels in the `RATE_PLAN` how they look now:
+```{r}
+contractRefDf$RATE_PLAN %>% unique
+```
+Let's check now the number of `RATE_PLAN` levels:
 ```{r}
 contractRefDf$RATE_PLAN %>% unique %>% length
 ```
@@ -510,7 +514,11 @@ contractRefDf$RATE_PLAN_VALUE <- gsub(" [a-zA-Z]+", "", contractRefDf$RATE_PLAN_
 contractRefDf$RATE_PLAN_VALUE <- gsub("[a-zA-Z]+ ", "", contractRefDf$RATE_PLAN_VALUE)
 contractRefDf$RATE_PLAN_VALUE <- as.factor(contractRefDf$RATE_PLAN_VALUE)
 ```
-Let's check now the number of `RATE_PLAN_VALUE` levels.
+Let's see the different levels in the `RATE_PLAN_VALUE` how they look:
+```{r}
+contractRefDf$RATE_PLAN_VALUE %>% unique
+```
+Let's check now the number of `RATE_PLAN_VALUE` levels:
 ```{r}
 contractRefDf$RATE_PLAN_VALUE %>% unique %>% length
 ```
