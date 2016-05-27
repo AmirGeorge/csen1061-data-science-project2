@@ -1,0 +1,81 @@
+---
+title: "Project2-DataScience"
+author: "Abanoub Mimi, Amir George, Tony Foti"
+date: "May 8, 2016"
+output: html_document
+---
+
+#Exploratory analysis
+We begin by attaching required libraries and loading the datasets and relevant classifiers.
+```{r message=FALSE}
+library(dplyr)
+library(knitr)
+library(RWeka)
+library(tidyr)
+library(ggplot2)
+```
+```{r cache=TRUE}
+trainDf <- read.csv('data/train.csv')
+testDf <- read.csv('data/test.csv')
+contractRefDf <- read.csv('data/contract_ref.csv')
+calendarRefDf <- read.csv('data/calendar_ref.csv')
+# dailyAggDf <- read.csv('data/daily_aggregate.csv')
+roamingDf <- read.csv('data/roaming_monthly.csv')
+```
+```{r}
+trainDf$TARGET <- as.factor(trainDf$TARGET)
+RF <- make_Weka_classifier("weka/classifiers/trees/RandomForest")
+NB <- make_Weka_classifier("weka/classifiers/bayes/NaiveBayes")
+MLP <- make_Weka_classifier("weka/classifiers/functions/MultilayerPerceptron")
+```
+
+
+
+Examine the graph for sample of users' usage where the target is 1 and 0
+```{r}
+monthly_names <- c('206','207','208','209','210')
+monthly_usage_columns <- c('X206_USAGE','X207_USAGE','X208_USAGE','X209_USAGE','X210_USAGE')
+avgs_monthly_usages <- c(mean(trainDf$X206_USAGE),mean(trainDf$X207_USAGE),mean(trainDf$X208_USAGE),mean(trainDf$X209_USAGE),mean(trainDf$X210_USAGE))
+
+trainDfTarget1 <- trainDf %>% filter(TARGET == 1)
+trainDfTarget0 <- trainDf %>% filter(TARGET == 0)
+
+avgs_monthly_usages_traget_1 <- c(mean(trainDfTarget1$X206_USAGE),mean(trainDfTarget1$X207_USAGE),mean(trainDfTarget1$X208_USAGE),mean(trainDfTarget1$X209_USAGE),mean(trainDfTarget1$X210_USAGE))
+
+avgs_monthly_sessions_count_traget_1 <- 
+c(mean(trainDfTarget1$X206_SESSION_COUNT),mean(trainDfTarget1$X207_SESSION_COUNT),mean(trainDfTarget1$X208_SESSION_COUNT),mean(trainDfTarget1$X209_SESSION_COUNT),mean(trainDfTarget1$X210_SESSION_COUNT))
+
+avgs_monthly_usages_target_0 <- c(mean(trainDfTarget0$X206_USAGE),mean(trainDfTarget0$X207_USAGE),mean(trainDfTarget0$X208_USAGE),mean(trainDfTarget0$X209_USAGE),mean(trainDfTarget0$X210_USAGE))
+
+avgs_monthly_sessions_count_traget_0 <- c(mean(trainDfTarget0$X206_SESSION_COUNT),mean(trainDfTarget0$X207_SESSION_COUNT),mean(trainDfTarget0$X208_SESSION_COUNT),mean(trainDfTarget0$X209_SESSION_COUNT),mean(trainDfTarget0$X210_SESSION_COUNT))
+
+df <- data.frame(monthly_names, avgs_monthly_usages_traget_1, avgs_monthly_usages_target_0, avgs_monthly_sessions_count_traget_1, avgs_monthly_sessions_count_traget_0)
+```
+
+From the figure below we can have two observaitions:
+  1. The value is 1 when the rate of changes tends to increase over the 5 months.
+  2. The value is 1 for the users who used big usages in the last 5 months(roughly greater than 2500MB).
+  
+```{r}
+
+ggplot(df, aes(monthly_names)) + 
+  geom_line(aes(y = avgs_monthly_usages_traget_1, colour='1'), size=1.5, group = 1) + 
+  geom_line(aes(y = avgs_monthly_usages_target_0, colour= '0'), size= 1.5, group = 1) + 
+  xlab("Month")+ylab("Mean Usage")  +
+  scale_colour_manual(values=c("#F57670","#C680FC"))+
+  scale_linetype_manual(values = c("--","-")) +
+  scale_shape_manual(values=c("^","o")) 
+```
+The same as the mean for usage when the target is 1 However, we can notice that bump in the middle of thers users where the target is 0.
+```{r}
+ggplot(df, aes(monthly_names)) + 
+  geom_line(aes(y = avgs_monthly_sessions_count_traget_1, colour='1'), size=1.5, group = 1) + 
+  geom_line(aes(y = avgs_monthly_sessions_count_traget_0, colour= '0'), size= 1.5, group = 1) + 
+  xlab("Month")+ylab("Mean Session Count")  +
+  scale_colour_manual(values=c("#F57670","#C680FC"))+
+  scale_linetype_manual(values = c("--","-")) +
+  scale_shape_manual(values=c("^","o")) 
+```
+
+
+
