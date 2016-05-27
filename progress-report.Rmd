@@ -515,3 +515,14 @@ Let's check now the number of `RATE_PLAN_VALUE` levels.
 contractRefDf$RATE_PLAN_VALUE %>% unique %>% length
 ```
 Adding the `RATE_PLAN_VALUE` to the predicitions yields a score of `0.64236`.
+
+##24- Adding the approaches of the 2 trials of extracting features from the `RATE_PLAN` in the `contractRefDf` (Tony)
+So building on 23 and applying what was done in 18 by updating the `RATE_PLAN` as follows:
+Discarding the year value from the `RATE_PLAN` in addition to the other numerical values such as the amount of GBs and the rate plan monetary value.
+```{r}
+contractRefDf$RATE_PLAN <- gsub("[2][0][0-9][0-9] ", "", contractRefDf$RATE_PLAN)
+contractRefDf$RATE_PLAN <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDf$RATE_PLAN)
+contractRefDf$RATE_PLAN <- gsub(" [0-9]+", "", contractRefDf$RATE_PLAN)
+contractRefDf$RATE_PLAN <- as.factor(contractRefDf$RATE_PLAN)
+```
+So adding both the updated `RATE_PLAN` and the `RATE_PLAN_VALUE` (calculated in 22) together to the predictions, we obtain a minimum score of `0.50000`.
