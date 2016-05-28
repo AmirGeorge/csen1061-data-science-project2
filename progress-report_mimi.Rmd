@@ -62,9 +62,7 @@ ggplot(df, aes(monthly_names)) +
   geom_line(aes(y = avgs_monthly_usages_traget_1, colour='1'), size=1.5, group = 1) + 
   geom_line(aes(y = avgs_monthly_usages_target_0, colour= '0'), size= 1.5, group = 1) + 
   xlab("Month")+ylab("Mean Usage")  +
-  scale_colour_manual(values=c("#F57670","#C680FC"))+
-  scale_linetype_manual(values = c("--","-")) +
-  scale_shape_manual(values=c("^","o")) 
+  scale_colour_manual(values=c("#F57670","#C680FC"))
 ```
 The same as the mean for usage when the target is 1 However, we can notice that bump in the middle of thers users where the target is 0.
 ```{r}
@@ -72,9 +70,17 @@ ggplot(df, aes(monthly_names)) +
   geom_line(aes(y = avgs_monthly_sessions_count_traget_1, colour='1'), size=1.5, group = 1) + 
   geom_line(aes(y = avgs_monthly_sessions_count_traget_0, colour= '0'), size= 1.5, group = 1) + 
   xlab("Month")+ylab("Mean Session Count")  +
-  scale_colour_manual(values=c("#F57670","#C680FC"))+
-  scale_linetype_manual(values = c("--","-")) +
-  scale_shape_manual(values=c("^","o")) 
+  scale_colour_manual(values=c("#F57670","#C680FC"))
+
+trainDf <- trainDf %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, always_increasing = (diff1 > 0 & diff2 > 0 & diff3 >0 & diff4 > 0))
+
+#mx <- trainDf %>% max(X206_USAGE,X207_USAGE)
+#mid <- 2200
+#trainDf <- trainDf %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, always_increasing = (diff1 > 0 & diff2 > 0 & diff3 >0 & diff4 > 0), above_mid = (min(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE) > mid))
+
+
+
+
 ```
 
 
