@@ -707,9 +707,21 @@ contractRefDf$GENDER[contractRefDf$GENDER == &quot;Not Entered&quot;] &lt;- &quo
 ## [181] Business Bouquet 75            Business Bouquet 200 Control  
 ## [183] New Bouquet ESDB 25           
 ## 183 Levels: 2011 Bouquet 100 2011 Bouquet 200 ... VPN Partners</code></pre>
-<p>We can see that there are some similarities within some of those different values that would reflect the same info/value. For example, <em>2013 Business El Asly 30</em> and <em>2014 Business El Asly 30</em> are two different <code>RATE_PLAN</code> values that mainly reflect the same rate plan but for different years. Hence, one of the things to be done, is to discard the year value from the <code>RATE_PLAN</code>. Also other numerical values were also excluded like the amount of GBs and the rate plan monetary value.</p>
+<p>We can see that there are some similarities within some of those different values that would reflect the same info/value. For example, <em>2013 Business El Asly 30</em> and <em>2014 Business El Asly 30</em> are two different <code>RATE_PLAN</code> values that mainly reflect the same rate plan but for different years. Hence, one of the things to be done, is to discard the year value from the <code>RATE_PLAN</code>.</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN &lt;- gsub(&quot;[2][0][0-9][0-9] &quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
-contractRefDf$RATE_PLAN &lt;- gsub(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
+contractRefDf$RATE_PLAN %&gt;% unique %&gt;% length</code></pre>
+<pre><code>## [1] 174</code></pre>
+<p>The <code>RATE_PLAN</code> levels dropped to 174, which is not a remarkable difference.</p>
+<p>Also other numerical values were also excluded like the amount of GBs and the rate plan monetary value. The rate plans including the descriptive amount of data in GBs are very few out of the total unique values we have:</p>
+<pre class="r"><code>contractRefDf$RATE_PLAN[grepl(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, contractRefDf$RATE_PLAN)] %&gt;% unique %&gt;% length</code></pre>
+<pre><code>## [1] 7</code></pre>
+<p>Also the number of customers subscribed to those rate plans are also a small percentage (6.440326 %):</p>
+<pre class="r"><code>contractRefDf$CONTRACT_KEY[grepl(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, contractRefDf$RATE_PLAN)] %&gt;% length</code></pre>
+<pre><code>## [1] 6939</code></pre>
+<pre class="r"><code>contractRefDf$CONTRACT_KEY[grepl(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, contractRefDf$RATE_PLAN)] %&gt;% length / contractRefDf %&gt;% nrow * 100</code></pre>
+<pre><code>## [1] 6.440326</code></pre>
+<p>So let’s just exclude the above mentioned numerical values and only consider the remaining part of the <code>RATE_PLAN</code> and see if it would positively affect the results.</p>
+<pre class="r"><code>contractRefDf$RATE_PLAN &lt;- gsub(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN &lt;- gsub(&quot; [0-9]+&quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN &lt;- as.factor(contractRefDf$RATE_PLAN)</code></pre>
 <p>Let’s see the different levels in the <code>RATE_PLAN</code> how they look now:</p>
@@ -3030,7 +3042,7 @@ vs_frequencies</code></pre>
 <pre class="r"><code>contractRefDf &lt;- contractRefDf %&gt;% mutate(RATE_PLAN_VALUE = gsub(&quot;[2][0][0-9][0-9] &quot;, &quot;&quot;, contractRefDf$RATE_PLAN))</code></pre>
 <p>Next, let’s remove the GBs size of the plan:</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN_VALUE &lt;- gsub(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, &quot;&quot;, contractRefDf$RATE_PLAN_VALUE)</code></pre>
-<p>Now, any numberiacal value existing in the <code>RATE_PLAN</code> is the moneytary value we want. So let’s remove any other parts and just keep the number(s), and get the mean in case of multiple values (hybrid plans):</p>
+<p>Now, any numerical value existing in the <code>RATE_PLAN</code> is the moneytary value we want. So let’s remove any other parts and just keep the number(s):</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN_VALUE &lt;- gsub(&quot; [a-zA-Z]+&quot;, &quot;&quot;, contractRefDf$RATE_PLAN_VALUE)
 contractRefDf$RATE_PLAN_VALUE &lt;- gsub(&quot;[a-zA-Z]+ &quot;, &quot;&quot;, contractRefDf$RATE_PLAN_VALUE)
 contractRefDf$RATE_PLAN_VALUE &lt;- as.factor(contractRefDf$RATE_PLAN_VALUE)</code></pre>
@@ -3060,7 +3072,7 @@ contractRefDf$RATE_PLAN_VALUE &lt;- as.factor(contractRefDf$RATE_PLAN_VALUE)</co
 contractRefDf$RATE_PLAN &lt;- gsub(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN &lt;- gsub(&quot; [0-9]+&quot;, &quot;&quot;, contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN &lt;- as.factor(contractRefDf$RATE_PLAN)</code></pre>
-<p>So adding both the updated <code>RATE_PLAN</code> and the <code>RATE_PLAN_VALUE</code> (calculated in 22) together to the predictions, we obtain a minimum score of <code>0.50000</code>.</p>
+<p>So adding both the updated <code>RATE_PLAN</code> and the <code>RATE_PLAN_VALUE</code> (calculated in 23) together to the predictions, we obtain a minimum score of <code>0.50000</code>.</p>
 </div>
 </div>
 
