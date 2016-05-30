@@ -338,9 +338,24 @@ Now getting to know the different unique values for the `RATE_PLAN`:
 contractRefDf$RATE_PLAN %>% unique
 ```
 We can see that there are some similarities within some of those different values that would reflect the same info/value. For example, *2013 Business El Asly 30* and *2014 Business El Asly 30* are two different `RATE_PLAN` values that mainly reflect the same rate plan but for different years. Hence, one of the things to be done, is to discard the year value from the `RATE_PLAN`.
-Also other numerical values were also excluded like the amount of GBs and the rate plan monetary value.
 ```{r}
 contractRefDf$RATE_PLAN <- gsub("[2][0][0-9][0-9] ", "", contractRefDf$RATE_PLAN)
+contractRefDf$RATE_PLAN %>% unique %>% length
+```
+The `RATE_PLAN` levels dropped to 174, which is not a remarkable difference.
+
+Also other numerical values were also excluded like the amount of GBs and the rate plan monetary value.
+The rate plans including the descriptive amount of data in GBs are very few out of the total unique values we have:
+```{r}
+contractRefDf$RATE_PLAN[grepl(" [0-9]+(\\.[0-9]*)* GB", contractRefDf$RATE_PLAN)] %>% unique %>% length
+```
+Also the number of customers subscribed to those rate plans are also a small percentage (6.440326 %):
+```{r}
+contractRefDf$CONTRACT_KEY[grepl(" [0-9]+(\\.[0-9]*)* GB", contractRefDf$RATE_PLAN)] %>% length
+contractRefDf$CONTRACT_KEY[grepl(" [0-9]+(\\.[0-9]*)* GB", contractRefDf$RATE_PLAN)] %>% length / contractRefDf %>% nrow * 100
+```
+So let's just exclude the above mentioned numerical values and only consider the remaining part of the `RATE_PLAN` and see if it would positively affect the results.
+```{r}
 contractRefDf$RATE_PLAN <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN <- gsub(" [0-9]+", "", contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN <- as.factor(contractRefDf$RATE_PLAN)
@@ -507,8 +522,8 @@ Next, let's remove the GBs size of the plan:
 ```{r}
 contractRefDf$RATE_PLAN_VALUE <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDf$RATE_PLAN_VALUE)
 ```
-Now, any numberiacal value existing in the `RATE_PLAN` is the moneytary value we want.
-So let's remove any other parts and just keep the number(s), and get the mean in case of multiple values (hybrid plans):
+Now, any numerical value existing in the `RATE_PLAN` is the moneytary value we want.
+So let's remove any other parts and just keep the number(s):
 ```{r}
 contractRefDf$RATE_PLAN_VALUE <- gsub(" [a-zA-Z]+", "", contractRefDf$RATE_PLAN_VALUE)
 contractRefDf$RATE_PLAN_VALUE <- gsub("[a-zA-Z]+ ", "", contractRefDf$RATE_PLAN_VALUE)
@@ -533,4 +548,4 @@ contractRefDf$RATE_PLAN <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDf$RATE
 contractRefDf$RATE_PLAN <- gsub(" [0-9]+", "", contractRefDf$RATE_PLAN)
 contractRefDf$RATE_PLAN <- as.factor(contractRefDf$RATE_PLAN)
 ```
-So adding both the updated `RATE_PLAN` and the `RATE_PLAN_VALUE` (calculated in 22) together to the predictions, we obtain a minimum score of `0.50000`.
+So adding both the updated `RATE_PLAN` and the `RATE_PLAN_VALUE` (calculated in 23) together to the predictions, we obtain a minimum score of `0.50000`.
