@@ -213,9 +213,9 @@ train.df <- train.df %>% rowwise() %>% mutate(
   ,
   weekday_sessions_count = sum(c(local_Sunday_sessions_count,roaming_Sunday_sessions_count,local_Monday_sessions_count,roaming_Monday_sessions_count,local_Tuesday_sessions_count,roaming_Tuesday_sessions_count,local_Wednesday_sessions_count,roaming_Wednesday_sessions_count,local_Thursday_sessions_count,roaming_Thursday_sessions_count))
   ,
-  weekend_usage = sum(c(local_Friday_usage,roaming_Saturday_usage,local_Saturday_usage,roaming_Saturday_usage))
+  weekend_usage = sum(c(local_Friday_usage,roaming_Friday_usage,local_Saturday_usage,roaming_Saturday_usage))
   ,
-  weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Saturday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
+  weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Friday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
 )
 
 ## Test
@@ -224,9 +224,9 @@ test.df <- test.df %>% rowwise() %>% mutate(
   ,
   weekday_sessions_count = sum(c(local_Sunday_sessions_count,roaming_Sunday_sessions_count,local_Monday_sessions_count,roaming_Monday_sessions_count,local_Tuesday_sessions_count,roaming_Tuesday_sessions_count,local_Wednesday_sessions_count,roaming_Wednesday_sessions_count,local_Thursday_sessions_count,roaming_Thursday_sessions_count))
   ,
-  weekend_usage = sum(c(local_Friday_usage,roaming_Saturday_usage,local_Saturday_usage,roaming_Saturday_usage))
+  weekend_usage = sum(c(local_Friday_usage,roaming_Friday_usage,local_Saturday_usage,roaming_Saturday_usage))
   ,
-  weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Saturday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
+  weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Friday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
 )
 
 train.df <- train.df %>% rowwise() %>% mutate(
@@ -283,4 +283,4 @@ myModel <- MLP(TARGET~X206_SESSION_COUNT + X206_USAGE +
 myTarget = predict(myModel, newdata = test.df, type=c("class"))
 myResult <- data.frame(CONTRACT_KEY=test.df$CONTRACT_KEY, PREDICTED_TARGET=myTarget)
 myResult %>% filter(PREDICTED_TARGET == 1) %>% nrow()
-write.table(myResult, file="bsmEllah.csv", sep =",", row.names= FALSE)
+write.table(myResult, file="mimi2.csv", sep =",", row.names= FALSE)
