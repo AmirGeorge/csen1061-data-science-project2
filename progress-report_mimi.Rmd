@@ -19,7 +19,7 @@ trainDf <- read.csv('data/train.csv')
 testDf <- read.csv('data/test.csv')
 contractRefDf <- read.csv('data/contract_ref.csv')
 calendarRefDf <- read.csv('data/calendar_ref.csv')
-# dailyAggDf <- read.csv('data/daily_aggregate.csv')
+dailyAggDf <- read.csv('data/daily_aggregate.csv', nrows = 2000)
 roamingDf <- read.csv('data/roaming_monthly.csv')
 ```
 ```{r}
@@ -79,8 +79,165 @@ trainDf <- trainDf %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, dif
 #trainDf <- trainDf %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, always_increasing = (diff1 > 0 & diff2 > 0 & diff3 >0 & diff4 > 0), above_mid = (min(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE) > mid))
 ```
 
-#CrossValidation between different models
 
+##Explore Daily Agg. Data
+
+```{r}
+dailyAggDf %>% dim
+summary(dailyAggDf)
+```
+
+The number of users we have their data
+```{r}
+dailyAggDf %>% group_by(CONTRACT_KEY) %>% summarise(sum = sum(TOTAL_CONSUMPTION)) %>%nrow()
+```
+
+The number of users who belong to the train set
+```{r}
+dailyAggDf %>% group_by(CONTRACT_KEY) %>%  summarise(sum = sum(TOTAL_CONSUMPTION))  %>% merge(trainDf,BY = "DATE_KEY") %>%nrow()
+```
+
+The number of users who belong to the test set
+```{r}
+dailyAggDf %>% group_by(CONTRACT_KEY) %>%  summarise(sum = sum(TOTAL_CONSUMPTION))  %>% merge(testDf,BY = "DATE_KEY") %>%nrow()
+```
+
+We merge the daily data with the agg to get more info to each record
+```{r}
+colnames(dailyAggDf)[2] <- "DATE_KEY"
+daily_calendar_merge <- merge(dailyAggDf, calendarRefDf, BY = "DATE_KEY")
+```
+
+We found that total consumption is measured by bytes so we convert it to MB
+```{r}
+daily_calendar_merge$TOTAL_CONSUMPTION <- daily_calendar_merge$TOTAL_CONSUMPTION/1024/1024
+```
+
+For each user in the daily agg table we calculate for each day in the dayweeks, the amount of usage and sessions whether local or roaming in that day. But we don't have the data for all the users so, we we calculate their usage as the total over 7 (the seven days) equally.
+
+```{r}
+  weekdays <- c('Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday')
+  train.df <- trainDf
+  test.df  <- testDf
+  a <- merge(dailyAggDf, calendarRefDf, BY = "DATE_KEY")
+  a$TOTAL_CONSUMPTION <- a$TOTAL_CONSUMPTION/1024/1024
+  
+  for(name in weekdays){
+      # Local Data
+      col_name_usage <- paste('local_',name,'_usage',sep='')
+      col_name_sessions_count <- paste('local_',name,'_sessions_count',sep='')
+      filtered_data <- a %>% filter(ROAMING_FLAG == "LOCAL" & DAY_NAME == name)
+      
+      exp <- paste("filtered_data %>% group_by(CONTRACT_KEY) %>% 
+        summarise(", col_name_usage, "= sum(TOTAL_CONSUMPTION),",col_name_sessions_count,"=sum(NO_OF_SESSIONS) )", sep = "")
+      local <- eval(parse(text = exp))
+      train.df <- merge(train.df,local, BY = "CONTRACT_KEY",all.x = T)
+      test.df <- merge(test.df,local, BY = "CONTRACT_KEY",all.x = T)
+      
+      ##Remove Na's
+      #local usage
+      exp <- paste("train.df <- train.df %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),X210_USAGE/7,",col_name_usage,"))", sep= "")
+      eval(parse(text = exp))
+
+      #local sessions count
+      exp <- paste("train.df <- train.df %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),X210_SESSION_COUNT/7,",col_name_sessions_count,"))", sep= "")
+      eval(parse(text = exp))
+
+      ##Remove Na's
+      #testing
+      exp <- paste("test.df <- test.df %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),X210_USAGE/7,",col_name_usage,"))", sep= "")
+      eval(parse(text = exp))
+
+      exp <- paste("test.df <- test.df %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),X210_SESSION_COUNT/7,",col_name_sessions_count,"))", sep= "")
+      eval(parse(text = exp))
+
+      #Roaming Data
+      col_name_usage <- paste('roaming_',name,'_usage',sep='')
+      col_name_sessions_count <- paste('roaming_',name,'_sessions_count',sep='')
+
+      filtered_data <- a %>% filter(ROAMING_FLAG == "ROAMING" & DAY_NAME == name)
+      exp <- paste("filtered_data %>% group_by(CONTRACT_KEY) %>% 
+        summarise(", col_name_usage, "= sum(TOTAL_CONSUMPTION),",col_name_sessions_count,"=sum(NO_OF_SESSIONS) )", sep = "")
+      roaming <- eval(parse(text = exp))
+      train.df <- merge(train.df,roaming, BY = "CONTRACT_KEY",all.x = T)
+      test.df <- merge(test.df,roaming, BY = "CONTRACT_KEY",all.x = T) 
+
+      ##Remove Na's
+      #roamiming usage
+      exp <- paste("train.df <- train.df %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),R210_USAGE/7,",col_name_usage,"))", sep= "")
+      eval(parse(text = exp))
+
+      #roamiming sessions count
+      exp <- paste("train.df <- train.df %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),R210_SESSION_COUNT/7,",col_name_sessions_count,"))", sep= "")
+      eval(parse(text = exp))
+
+      ##Remove Na's
+      #roamiming usage
+      exp <- paste("test.df <- test.df %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),R210_USAGE/7,",col_name_usage,"))", sep= "")
+      eval(parse(text = exp))
+
+      #local sessions count
+      exp <- paste("test.df <- test.df %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),R210_SESSION_COUNT/7,",col_name_sessions_count,"))", sep= "")
+      eval(parse(text = exp))
+  }
+```
+With adding the above features to the model, the score improved to 0.69884.
+
+Also we added four features to describe the data more precisy. we defined weekday_usage which is the sum of usage and sessions count spent on the weekdays (Sunday,...Friday). and the same for the weekend
+
+```{r}
+## Train 
+  train.df <- train.df %>% rowwise() %>% mutate(
+    weekday_usage = sum(c(local_Sunday_usage,roaming_Sunday_usage,local_Monday_usage,roaming_Monday_usage,local_Tuesday_usage,roaming_Tuesday_usage,local_Wednesday_usage,roaming_Wednesday_usage,local_Thursday_usage,roaming_Thursday_usage))
+    ,
+    weekday_sessions_count = sum(c(local_Sunday_sessions_count,roaming_Sunday_sessions_count,local_Monday_sessions_count,roaming_Monday_sessions_count,local_Tuesday_sessions_count,roaming_Tuesday_sessions_count,local_Wednesday_sessions_count,roaming_Wednesday_sessions_count,local_Thursday_sessions_count,roaming_Thursday_sessions_count))
+    ,
+    weekend_usage = sum(c(local_Friday_usage,roaming_Saturday_usage,local_Saturday_usage,roaming_Saturday_usage))
+    ,
+    weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Saturday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
+   )
+
+  ## Test
+  test.df <- test.df %>% rowwise() %>% mutate(
+    weekday_usage = sum(c(local_Sunday_usage,roaming_Sunday_usage,local_Monday_usage,roaming_Monday_usage,local_Tuesday_usage,roaming_Tuesday_usage,local_Wednesday_usage,roaming_Wednesday_usage,local_Thursday_usage,roaming_Thursday_usage))
+    ,
+    weekday_sessions_count = sum(c(local_Sunday_sessions_count,roaming_Sunday_sessions_count,local_Monday_sessions_count,roaming_Monday_sessions_count,local_Tuesday_sessions_count,roaming_Tuesday_sessions_count,local_Wednesday_sessions_count,roaming_Wednesday_sessions_count,local_Thursday_sessions_count,roaming_Thursday_sessions_count))
+    ,
+    weekend_usage = sum(c(local_Friday_usage,roaming_Saturday_usage,local_Saturday_usage,roaming_Saturday_usage))
+    ,
+    weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Saturday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
+   )
+```
+With adding the above features to the model, the score improved to 0.70333
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#CrossValidation between different models
 We did the cross validation on Microsoft Azure beacuse our local machinse could'nt stand this big laod.
 
 ```{r}
@@ -91,6 +248,15 @@ crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGemi
 summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
 summary %>% kable
 
+ggplot(summary, aes(Model)) +
+  geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
+  geom_point(aes(y = recall, colour = 'Recall'), size= 1.5, group = 1, shape=2)+ 
+  geom_point(aes(y = accuracy, colour = 'Accuracy'), size= 1.5, group = 1, shape=3)+ 
+  geom_point(aes(y = F.Score, colour = 'Score'), size= 1.5, group = 1, shape=4)+ 
+  xlab("Model Name")+ylab("Results")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","GREEN","BLUE"))+
+  #scale_shape_discrete(solid=T, legend=F) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
