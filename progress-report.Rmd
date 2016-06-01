@@ -329,44 +329,47 @@ contractRefDf$GENDER[contractRefDf$GENDER == "Not Entered"] <- "Unknown"
 So adding the `GENDER` to the predicitions after the above modifications, we get a score of `0.66270` (less than the last state before adding the `GENDER` to the predictions).
 
 ##18- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 1 (Tony)
+```{r}
+contractRefDfTemp <- contractRefDf
+```
 As it was mentioned before, a large number of levels exist for such feature.
 ```{r}
-contractRefDf$RATE_PLAN %>% unique %>% length
+contractRefDfTemp$RATE_PLAN %>% unique %>% length
 ```
 Now getting to know the different unique values for the `RATE_PLAN`:
 ```{R}
-contractRefDf$RATE_PLAN %>% unique
+contractRefDfTemp$RATE_PLAN %>% unique
 ```
 We can see that there are some similarities within some of those different values that would reflect the same info/value. For example, *2013 Business El Asly 30* and *2014 Business El Asly 30* are two different `RATE_PLAN` values that mainly reflect the same rate plan but for different years. Hence, one of the things to be done, is to discard the year value from the `RATE_PLAN`.
 ```{r}
-contractRefDf$RATE_PLAN <- gsub("[2][0][0-9][0-9] ", "", contractRefDf$RATE_PLAN)
-contractRefDf$RATE_PLAN %>% unique %>% length
+contractRefDfTemp$RATE_PLAN <- gsub("[2][0][0-9][0-9] ", "", contractRefDfTemp$RATE_PLAN)
+contractRefDfTemp$RATE_PLAN %>% unique %>% length
 ```
 The `RATE_PLAN` levels dropped to 174, which is not a remarkable difference.
 
 Also other numerical values were also excluded like the amount of GBs and the rate plan monetary value.
 The rate plans including the descriptive amount of data in GBs are very few out of the total unique values we have:
 ```{r}
-contractRefDf$RATE_PLAN[grepl(" [0-9]+(\\.[0-9]*)* GB", contractRefDf$RATE_PLAN)] %>% unique %>% length
+contractRefDfTemp$RATE_PLAN[grepl(" [0-9]+(\\.[0-9]*)* GB", contractRefDfTemp$RATE_PLAN)] %>% unique %>% length
 ```
 Also the number of customers subscribed to those rate plans are also a small percentage (6.440326 %):
 ```{r}
-contractRefDf$CONTRACT_KEY[grepl(" [0-9]+(\\.[0-9]*)* GB", contractRefDf$RATE_PLAN)] %>% length
-contractRefDf$CONTRACT_KEY[grepl(" [0-9]+(\\.[0-9]*)* GB", contractRefDf$RATE_PLAN)] %>% length / contractRefDf %>% nrow * 100
+contractRefDfTemp$CONTRACT_KEY[grepl(" [0-9]+(\\.[0-9]*)* GB", contractRefDfTemp$RATE_PLAN)] %>% length
+contractRefDfTemp$CONTRACT_KEY[grepl(" [0-9]+(\\.[0-9]*)* GB", contractRefDfTemp$RATE_PLAN)] %>% length / contractRefDfTemp %>% nrow * 100
 ```
 So let's just exclude the above mentioned numerical values and only consider the remaining part of the `RATE_PLAN` and see if it would positively affect the results.
 ```{r}
-contractRefDf$RATE_PLAN <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDf$RATE_PLAN)
-contractRefDf$RATE_PLAN <- gsub(" [0-9]+", "", contractRefDf$RATE_PLAN)
-contractRefDf$RATE_PLAN <- as.factor(contractRefDf$RATE_PLAN)
+contractRefDfTemp$RATE_PLAN <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDfTemp$RATE_PLAN)
+contractRefDfTemp$RATE_PLAN <- gsub(" [0-9]+", "", contractRefDfTemp$RATE_PLAN)
+contractRefDfTemp$RATE_PLAN <- as.factor(contractRefDfTemp$RATE_PLAN)
 ```
 Let's see the different levels in the `RATE_PLAN` how they look now:
 ```{r}
-contractRefDf$RATE_PLAN %>% unique
+contractRefDfTemp$RATE_PLAN %>% unique
 ```
 Let's check now the number of `RATE_PLAN` levels:
 ```{r}
-contractRefDf$RATE_PLAN %>% unique %>% length
+contractRefDfTemp$RATE_PLAN %>% unique %>% length
 ```
 As we can see, the impact was remarkable; as the `RATE_PLAN` levels dropped from 183 to 83 only.
 However, adding it to the predictions, the score has decreased to `0.58943`. Hence, this approach has to be excluded for the moment until further feature engineering concerning the `RATE_PLAN` are applied.
@@ -376,9 +379,9 @@ First, let's see the different possible values for the `HANDSET_NAME`.
 ```{r}
 contractRefDf$HANDSET_NAME %>% unique %>% length
 ```
-Let's see what those diffrent values are:
+Let's see what some of those diffrent values are:
 ```{r}
-contractRefDf$HANDSET_NAME %>% unique
+contractRefDf$HANDSET_NAME %>% unique %>% head
 ```
 Very huge possible values exist for the `HANDSET_NAME`.
 Let's extract a handset category by merging different `HANDSET_NAME` values into categories that correspond to the manufacturer so that they relatively reflect a common behavior/usage of the handset device. So let's have a new column (attribute) to store this new feature `HANSET_CAT`, where the first occuring keyword in the `HANSET_NAME` is corresponding to such value/feature.
@@ -403,15 +406,14 @@ Adding this feature to the predictions yields a score of `0.67081`, which is not
 ##21- Adding a feature that reflects an increasing level of usage in the 5th month (Tony)
 A new parameter was added depending on exceeding the average (mean) usage of the 4 months in the 5th one.
 ```{r}
-trainRoamDf <- trainRoamDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
-testRoamDf <- testRoamDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
+trainDf <- trainDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
+testDf <- testDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
 ```
 Adding this new parameter to the predictions yields a score of `0.66639`, which is not an improvement.
 
 ##Analysing the `VALUE_SEGMENT` from `contract_ref` (Tony)
 Let's check the unique values for the value segment:
 ```{r}
-contractRefDf <- read.csv('data/contract_ref.csv')
 contractRefDf$VALUE_SEGMENT %>% unique
 ```
 As we can see, we have some NAs in addition to "N/A" values. So let's merge them together.
@@ -420,17 +422,18 @@ contractRefDf$VALUE_SEGMENT[is.na(contractRefDf$VALUE_SEGMENT)] <- "N/A"
 ```
 Let's check the distribution of the different values of the `VALUE_SEGMENT` among the customers in a descending order
 ```{r}
-vs_frequencies <- contractRefDf %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
+vs_frequencies <- contractRefDf %>% filter(VALUE_SEGMENT != "N/A") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
 ```
 Let's plot the result showing the frequencies where the X-Axis is for the `VALUE_SEGMENT` and the Y-Axis is for the corresponding frequency `VS_frequency`:
 ```{r}
-vs_frequencies %>% ggplot(aes(x=VALUE_SEGMENT, y=VS_frequency)) + geom_bar(stat='identity')
+vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
+labs(title = "The frequency of the Value Segments while having 'N/A's", x = "Value Segment", y = "Frequency")
 ```
 
 As we can see, almost half of the customers have a `VALUE_SEGMENT` of `Core`. It can be assumed that this is the default value untill some upgrade happens to classify the customer in a different higher category.
 ```{r}
-contractRefDf[contractRefDf$VALUE_SEGMENT == "N/A",] %>% nrow
+contractRefDf %>% filter(VALUE_SEGMENT == "N/A") %>% nrow
 ```
 One of the problems we have here is that a considerable number of records have "N/A" values for the `VALUE_SEGMENT` (8175).
 
@@ -443,9 +446,10 @@ Let's check its relation with the `VALUE_SEGMENT`:
 
 ####Enterprise Shared Data Bundle
 ```{r}
-vs_frequencies <- contractRefDf[contractRefDf$RATE_PLAN == "Enterprise Shared Data Bundle",] %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "Enterprise Shared Data Bundle") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
-vs_frequencies %>% ggplot(aes(x=VALUE_SEGMENT, y=VS_frequency)) + geom_bar(stat='identity')
+vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
+labs(title = "Enterprise Shared Data Bundle", x = "Value Segment", y = "Frequency")
 ```
 
 The next most dominant rate plans are the following: `2013 Business El Asly 30`, `Business Flex 35`, `2014 ElAsly Plus 35`, and `Red 150`.
@@ -453,30 +457,34 @@ So let's check their corresponding relations with the `VALUE_SEGMENT`.
 
 ####2013 Business El Asly 30
 ```{r}
-vs_frequencies <- contractRefDf[contractRefDf$RATE_PLAN == "2013 Business El Asly 30",] %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "2013 Business El Asly 30") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
-vs_frequencies %>% ggplot(aes(x=VALUE_SEGMENT, y=VS_frequency)) + geom_bar(stat='identity')
+vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
+labs(title = "2013 Business El Asly 30", x = "Value Segment", y = "Frequency")
 ```
 
 ####Business Flex 35
 ```{r}
-vs_frequencies <- contractRefDf[contractRefDf$RATE_PLAN == "Business Flex 35",] %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "Business Flex 35") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
-vs_frequencies %>% ggplot(aes(x=VALUE_SEGMENT, y=VS_frequency)) + geom_bar(stat='identity')
+vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
+labs(title = "Business Flex 35", x = "Value Segment", y = "Frequency")
 ```
 
 ####2014 ElAsly Plus 35
 ```{r}
-vs_frequencies <- contractRefDf[contractRefDf$RATE_PLAN == "2014 ElAsly Plus 35",] %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "2014 ElAsly Plus 35") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
-vs_frequencies %>% ggplot(aes(x=VALUE_SEGMENT, y=VS_frequency)) + geom_bar(stat='identity')
+vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
+labs(title = "2014 ElAsly Plus 35", x = "Value Segment", y = "Frequency")
 ```
 
 ####Red 150
 ```{r}
-vs_frequencies <- contractRefDf[contractRefDf$RATE_PLAN == "Red 150",] %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "Red 150") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
-vs_frequencies %>% ggplot(aes(x=VALUE_SEGMENT, y=VS_frequency)) + geom_bar(stat='identity')
+vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
+labs(title = "Red 150", x = "Value Segment", y = "Frequency")
 ```
 
 It is clear that there is a strong relation between the `RATE_PLAN` and the `VALUE_SEGMENT`.
@@ -485,13 +493,8 @@ It is clear that there is a strong relation between the `RATE_PLAN` and the `VAL
 Let's infer the "N/A" values of the `VALUE_SEGMENT` through its relation with the `RATE_PLAN` by replacing the `VALUE_SEGMENT` having an "N/A" value with the dominant `VALUE_SEGMENT` value corresponding to the same `RATE_PLAN`. If it's still an "N/A" value, then take the second dominant one.
 ```{r}
 dominant_value_segment <- function(rate_plan){
-    vs_frequencies <- contractRefDf[contractRefDf$RATE_PLAN == rate_plan,] %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
-    if(vs_frequencies$VALUE_SEGMENT[1] == "N/A"){
-      result <- vs_frequencies$VALUE_SEGMENT[2]
-    }
-    else{
-      result <- vs_frequencies$VALUE_SEGMENT[1]
-    }
+    vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == rate_plan, VALUE_SEGMENT != "N/A") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
+    result <- vs_frequencies$VALUE_SEGMENT %>% first
     return(result)
 }
 
@@ -504,7 +507,8 @@ vs_frequencies
 ```
 Let's plot the result showing the frequencies where the X-Axis is for the `VALUE_SEGMENT` and the Y-Axis is for the corresponding frequency `VS_frequency`:
 ```{r}
-vs_frequencies %>% ggplot(aes(x=VALUE_SEGMENT, y=VS_frequency)) + geom_bar(stat='identity')
+vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
+labs(title = "The frequency of the Value Segments without having 'N/A's", x = "Value Segment", y = "Frequency")
 ```
 
 As we can see, almost half of the customers have a `VALUE_SEGMENT` of `Core` which is the dominant one.
@@ -527,7 +531,7 @@ So let's remove any other parts and just keep the number(s):
 ```{r}
 contractRefDf$RATE_PLAN_VALUE <- gsub(" [a-zA-Z]+", "", contractRefDf$RATE_PLAN_VALUE)
 contractRefDf$RATE_PLAN_VALUE <- gsub("[a-zA-Z]+ ", "", contractRefDf$RATE_PLAN_VALUE)
-contractRefDf$RATE_PLAN_VALUE <- as.factor(contractRefDf$RATE_PLAN_VALUE)
+# contractRefDf$RATE_PLAN_VALUE <- as.factor(contractRefDf$RATE_PLAN_VALUE)
 ```
 Let's see the different levels in the `RATE_PLAN_VALUE` how they look:
 ```{r}
@@ -540,12 +544,116 @@ contractRefDf$RATE_PLAN_VALUE %>% unique %>% length
 Adding the `RATE_PLAN_VALUE` to the predicitions yields a score of `0.64236`.
 
 ##24- Adding the approaches of the 2 trials of extracting features from the `RATE_PLAN` in the `contractRefDf` (Tony)
+```{r}
+contractRefDfTemp <- contractRefDf
+```
 So building on 23 and applying what was done in 18 by updating the `RATE_PLAN` as follows:
 Discarding the year value from the `RATE_PLAN` in addition to the other numerical values such as the amount of GBs and the rate plan monetary value.
 ```{r}
-contractRefDf$RATE_PLAN <- gsub("[2][0][0-9][0-9] ", "", contractRefDf$RATE_PLAN)
-contractRefDf$RATE_PLAN <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDf$RATE_PLAN)
-contractRefDf$RATE_PLAN <- gsub(" [0-9]+", "", contractRefDf$RATE_PLAN)
-contractRefDf$RATE_PLAN <- as.factor(contractRefDf$RATE_PLAN)
+contractRefDfTemp$RATE_PLAN <- gsub("[2][0][0-9][0-9] ", "", contractRefDfTemp$RATE_PLAN)
+contractRefDfTemp$RATE_PLAN <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDfTemp$RATE_PLAN)
+contractRefDfTemp$RATE_PLAN <- gsub(" [0-9]+", "", contractRefDfTemp$RATE_PLAN)
+contractRefDfTemp$RATE_PLAN <- as.factor(contractRefDfTemp$RATE_PLAN)
 ```
 So adding both the updated `RATE_PLAN` and the `RATE_PLAN_VALUE` (calculated in 23) together to the predictions, we obtain a minimum score of `0.50000`.
+
+##31- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 3 (Tony)
+Building on 23 (Trial 2), let's proceed to have a `RATE_PLAN_VALUE` for all the rate plans we have.
+Some of the `RATE_PLAN_VALUE` values we have have had a combination of plans that had their corresponding moneytary values, hence at this stage  for such examples, the `RATE_PLAN_VALUE` might have two moneytary values; such as '30 150'. So let's extract the numerical values out and get their mean. The single values will remain as they are and the non numerical values (the rate plans that didn't contain any moneytary value such as `Enterprise Shared Data Bundle`) will have their `RATE_PLAN_VALUE` as NAs.
+```{r warning=FALSE}
+contractRefDf$RATE_PLAN_VALUE <- contractRefDf$RATE_PLAN_VALUE %>% sapply(function(x) x %>% strsplit(" ") %>% sapply(function(y) as.numeric(y)) %>% mean)
+contractRefDf$RATE_PLAN_VALUE <- as.factor(contractRefDf$RATE_PLAN_VALUE)
+```
+Let's check the number of levels now:
+```{r}
+contractRefDf$RATE_PLAN_VALUE %>% unique %>% length
+```
+Let's check now the most frequent rate plan values we have so far:
+```{r}
+contractRefDf %>% filter(!is.na(RATE_PLAN_VALUE)) %>% group_by(RATE_PLAN_VALUE) %>% summarise(RPV_frequency = length(CONTRACT_KEY)) %>% arrange(desc(RPV_frequency))
+```
+Let's now see the relation between the `RATE_PLAN_VALUE` and the average data usage of the customers:
+```{r}
+trainDf <- trainDf %>% rowwise() %>% mutate(mean_usage = mean(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)))
+testDf <- testDf %>% rowwise() %>% mutate(mean_usage = mean(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)))
+trainDf <- merge(trainDf, contractRefDf, by = "CONTRACT_KEY")
+testDf <- merge(testDf, contractRefDf, by = "CONTRACT_KEY")
+
+ggplot(trainDf %>% head(100), aes(x = RATE_PLAN_VALUE, y = mean_usage)) + geom_boxplot() + 
+labs(title = "First 100 records considered", x = "Rate Plan Value", y = "Average Data Usage")
+
+ggplot(trainDf %>% filter(RATE_PLAN_VALUE == c(25, 30, 35, 45, 50, 60, 100, 150, 250, 300)), aes(x = RATE_PLAN_VALUE, y = mean_usage)) + geom_boxplot() +
+labs(title = "Most frequent rate plan (moneytary) values", x = "Rate Plan Value", y = "Average Data Usage")
+
+p <- trainDf %>% filter(!is.na(RATE_PLAN_VALUE)) %>% group_by(RATE_PLAN_VALUE) %>% summarise(total_mean_usage = mean(mean_usage))
+
+p %>% ggplot(aes(x = RATE_PLAN_VALUE, y = total_mean_usage)) + geom_bar(stat='identity') + 
+labs(title = "Average Data Usage for all users for each rate plan (moneytary) value", x = "Rate Plan Value", y = "Total Average Data Usage")
+```
+
+Let's have a more generalized feature for the average data usage to help us spot the relation between the `RATE_PLAN_VALUE` and the amount of data usage. So let's round the calculated `mean_usage` to the neares 100 MB:
+```{r}
+trainDf <- trainDf %>% mutate(mean_usage_app = round(mean_usage/100)*100)
+testDf <- testDf %>% mutate(mean_usage_app = round(mean_usage/100)*100)
+```
+Let's see the number of levels for the approximated mean usage:
+```{r}
+trainDf$mean_usage_app %>% unique %>% length
+```
+Let's see the most frequent value from the distribution of those approximated average data usage values in the train dataset:
+```{r}
+trainDf %>% group_by(mean_usage_app) %>% summarise(USAGE_frequency = length(CONTRACT_KEY)) %>% arrange(desc(USAGE_frequency))
+```
+As we can see, the most frequent value corresponds to a usage below `50 MB` (0), followed by `200 MB` and `100 MB`.
+Let's check the relation of those frequent approximated average data usage values with the `RATE_PLAN_VALUE`:
+
+###Below 50 MB (0):
+```{r}
+rpv_frequencies <- trainDf %>% filter(mean_usage_app == 0, !is.na(RATE_PLAN_VALUE)) %>% group_by(RATE_PLAN_VALUE) %>% summarise(RPV_frequency = length(CONTRACT_KEY)) %>% arrange(desc(RPV_frequency))
+rpv_frequencies
+rpv_frequencies %>% ggplot(aes(x = RATE_PLAN_VALUE, y = RPV_frequency)) + geom_bar(stat='identity') +
+labs(title = "Below 50 MB (0) avg. usage", x = "Rate Plan Value", y = "Frequency")
+```
+
+As we can see, the dominant rate plan (moneytary) values for the corresponding (< 50 MB [0] avg. usage) are the `30` and `35` ones. Both are quite close values. Hence, it's showing a relation between the `RATE_PLAN_VALUE` and the corresponding average data usage.
+
+###200 MB:
+```{r}
+rpv_frequencies <- trainDf %>% filter(mean_usage_app == 200, !is.na(RATE_PLAN_VALUE)) %>% group_by(RATE_PLAN_VALUE) %>% summarise(RPV_frequency = length(CONTRACT_KEY)) %>% arrange(desc(RPV_frequency))
+rpv_frequencies
+rpv_frequencies %>% ggplot(aes(x = RATE_PLAN_VALUE, y = RPV_frequency)) + geom_bar(stat='identity') +
+labs(title = "Apprx. 200 MB avg. usage", x = "Rate Plan Value", y = "Frequency")
+```
+
+As we can see, the dominant rate plan (moneytary) values for the corresponding (apprx. 200 MB avg. usage) is `35`. Hence, it's showing a relation between the `RATE_PLAN_VALUE` and the corresponding average data usage.
+
+###100 MB:
+```{r}
+rpv_frequencies <- trainDf %>% filter(mean_usage_app == 100, !is.na(RATE_PLAN_VALUE)) %>% group_by(RATE_PLAN_VALUE) %>% summarise(RPV_frequency = length(CONTRACT_KEY)) %>% arrange(desc(RPV_frequency))
+rpv_frequencies
+rpv_frequencies %>% ggplot(aes(x = RATE_PLAN_VALUE, y = RPV_frequency)) + geom_bar(stat='identity') +
+labs(title = "Apprx. 100 MB avg. usage", x = "Rate Plan Value", y = "Frequency")
+```
+
+As we can see, the dominant rate plan (moneytary) values for the corresponding (apprx. 100 MB avg. usage) is `35`. Hence, it's showing a relation between the `RATE_PLAN_VALUE` and the corresponding average data usage.
+
+As we can see from all the previous calculations and data plotting, we can say that there's a relation between the `RATE_PLAN_VALUE` and the data usage.
+
+So let's infer the missing `RATE_PLAN_VALUE` values (NAs) from this relation; where the missing `rate_plan_value` shall be replaced by the most dominant `RATE_PLAN_VALUE` occuring with the same approximated average data usage of corresponding user:
+```{r}
+dominant_rate_plan_value_train <- function(usage_app){
+  rpv_frequencies <- trainDf %>% filter(mean_usage_app == usage_app, !is.na(RATE_PLAN_VALUE)) %>% group_by(RATE_PLAN_VALUE) %>% summarise(RPV_frequency = length(CONTRACT_KEY)) %>% arrange(desc(RPV_frequency))
+  result <- rpv_frequencies$RATE_PLAN_VALUE %>% first
+  return(result)
+}
+
+dominant_rate_plan_value_test <- function(usage_app){
+  rpv_frequencies <- testDf %>% filter(mean_usage_app == usage_app, !is.na(RATE_PLAN_VALUE)) %>% group_by(RATE_PLAN_VALUE) %>% summarise(RPV_frequency = length(CONTRACT_KEY)) %>% arrange(desc(RPV_frequency))
+  result <- rpv_frequencies$RATE_PLAN_VALUE %>% first
+  return(result)
+}
+
+trainDf$RATE_PLAN_VALUE[is.na(trainDf$RATE_PLAN_VALUE)] <- dominant_rate_plan_value_train(trainDf$mean_usage_app)
+testDf$RATE_PLAN_VALUE[is.na(testDf$RATE_PLAN_VALUE)] <- dominant_rate_plan_value_test(testDf$mean_usage_app)
+```
+Adding the calculated `RATE_PLAN_VALUE` to the predictions yields a score of `0.65238`.
