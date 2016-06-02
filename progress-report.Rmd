@@ -1,11 +1,11 @@
 ---
 title: "Project2-DataScience"
-author: "Abanoub Mimi, Amir George, Tony Foti"
+author: "Mimi Mimi, Amir George, Tony Foti"
 date: "May 8, 2016"
 output: html_document
 ---
 
-#Exploratory analysis (Amir)
+#Initial exploratory analysis (Amir)
 We begin by attaching required libraries and loading the datasets and relevant classifiers.
 ```{r message=FALSE}
 library(dplyr)
@@ -157,10 +157,10 @@ evaluateModel <- function(model){
 #Progress tracking
 In the following subsections we present a brief description of several approaches we tried in order to increase the prediction score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`.
 
-##1- Decision Tree classifier (Abanoub)
+##1- Decision Tree classifier (Mimi)
 By trying on on the Rweka's J48 decision tree classifier on all features of the original train and test datasets, a kaggle score of `0.61` was obtained, so this is the approach used in the next three steps.
 
-##2- Decision tree classifier with value segment and rate plan (Abanoub)
+##2- Decision tree classifier with value segment and rate plan (Mimi)
 By continuing on approach in `1` and merging with contractRef dataframe and factoring the `RATE_PLAN` and `VALUE_SEGMENT` in the predictions, a less kaggle score of `0.59099` was obtained, so this approach was neglected.
 
 ##3- Decision tree classifier with age (Amir)
@@ -179,7 +179,7 @@ By trying on on the Support Vector Machine (SMO) classifier, a score of `0.50000
 ##7- Random Forest classifier (Amir)
 By trying on on the Random Forest (RF) classifier, a score of `0.60032` was obtained, which was less than that obtained from the Decision tree classifier, so this approach was neglected.
 
-##8- Neural Network classifier (Abanoub)
+##8- Neural Network classifier (Mimi)
 By trying on on the Neural Network (NN) classifier, a score of `0.63391 ` was obtained, which is the highest score from all classifiers, so this is the classifier that will be used from now on.
 
 ##8.5 Local CV on J48, NB, SMO, MLP (Amir)
@@ -196,7 +196,9 @@ evaluateModel(model)
 rm(model)
 ```
 ![local 5-fold CV for initial features](figures/initialCV.png)
-It should be noted that the NN classifier which had the highest score on kaggle is the one with the highest precision in the 5-fold CV. Also, when studying the results of the SMO classifier, I was amused to find that the perfect recall score and the 0.79 precision are due to the fact that it recommended all target as `0`. It correctly classified all the 0 target observations as it classified all the observations as 0. Moreover, it scored a precision of 0.79 because this is the actual ration of 0 target observations in the training set. From the misleading results of the SMO classifier, we conclude that the precision metric is more valuable in our purpose, possibly due to most of the observations having a target of 0.
+
+### Reasoning in the initial CV scores
+It should be noted that the NN classifier which had the highest score on kaggle is the one with the highest precision in the 5-fold CV. Also, when studying the results of the SMO classifier, I was amused to find that the perfect recall score and the 0.79 precision are due to the fact that it recommended all target as `0`. It correctly classified all the 00target observations as it classified all the observations as 0. Moreover, it scored a precision of 0.79 because this is the actual ratio of 0-target observations in the training set. From the misleading results of the SMO classifier, we deduce that the precision metric is more valuable in our purpose, possibly due to the fact that most of the observations have a target of 0.
 
 ##9- Neural Network with removing `SESSION_COUNT` columns (Amir)
 By continuing on number `8` above (NN classifier), I removed all `SESSION_COUNT` from the prediction. The intuition behind this approach is that `USAGE` is the main concern here. However, a decreased score of `0.58118` was obtained, proving that session count indeed matters, and the approach here was neglected.
@@ -348,7 +350,7 @@ Building on `14`, I added the `RATE_PLAN` feature from `contract_ref` in the mod
 ##16- Adaboosting with NN as base classifier (Amir)
 Buidling on `14`, instead of using NN base classifier, I used boosting with `AdaboostM1` and with NN as its base classifier. Surprisingly, I obtained a score of `0.67495` which is less than the one obtained with the base classifier only.
 
-##17- Analysing the `GENDER` from `contract_ref` and adding it to the predictions (Tony)
+##17- Analysing the `GENDER` from `contract_ref` and adding it to the predictions (Tony & Amir)
 Let's check all the possible values that exist:
 ```{r}
 contractRefDf$GENDER %>% unique
@@ -363,6 +365,27 @@ contractRefDf$GENDER[contractRefDf$GENDER == "M"] <- "Male"
 contractRefDf$GENDER[contractRefDf$GENDER == "Not Entered"] <- "Unknown"
 ```
 So adding the `GENDER` to the predicitions after the above modifications, we get a score of `0.66270` (less than the last state before adding the `GENDER` to the predictions).
+
+##18- Attempt to add features from slope and monthly distance (Mimi)
+Building on 15, added 4 features representing differences between each two consecutive months, and one feature representing the average between the 4 differences (which represents an average slope). And a sixth feature representing average difference between last and first months. When factoring those 6 features in the prediction, a lesser score of 0.67884 was obtained.
+```{r eval=FALSE}
+trainDf$slop1 <- apply(trainDf,1,slope1)
+trainDf$slop2 <- apply(trainDf,1,slope2)
+trainDf$slop3 <- apply(trainDf,1,slope3)
+trainDf$slop4 <- apply(trainDf,1,slope4)
+trainDf$slop1to5 <- apply(trainDf,1,slope1to5)
+trainDf$avg_slop <- apply(trainDf,1,avg_slope)
+
+testDf$slop1 <- apply(testDf,1,slope1)
+testDf$slop2 <- apply(testDf,1,slope2)
+testDf$slop3 <- apply(testDf,1,slope3)
+testDf$slop4 <- apply(testDf,1,slope4)
+testDf$slop1to5 <- apply(testDf,1,slope1to5)
+testDf$avg_slop <- apply(testDf,1,avg2_slope)
+```
+
+##20 Selected features from 18 (Mimi)
+By modifying on 18, we factored only the last 2 features. A score of 0.68352 was obtained, which is an improvement on adding all the 6 features, but not an improvement on the original (14), so this approach was neglected.
 
 ##22- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 1 (Tony)
 ```{r}
@@ -439,13 +462,244 @@ contractRefDf <- contractRefDf %>% mutate(iPhone = ifelse(grepl("iPhone", HANDSE
 ```
 Adding this feature to the predictions yields a score of `0.67081`, which is not an improvement. Hence, taking the used device into account for the predictions won't be considered for the moment.
 
+##25- Feature engineering to integrate daily aggregate data (Mimi)
+Building on 14 which is the last score increasing approach, we integrate the daily data.For each user, we extract (from the daily aggregate df) for each day of the week the local and roaming usage and session count. But we don't have the daily data for all the users in the 5th month. So, we divide the last month data equally among the seven week days. This approach improved the score to `0.69884` so the extracted features here are added to our feature set afterwards.
+```{r}
+monthly_usage_columns <- c('X206_USAGE','X207_USAGE','X208_USAGE','X209_USAGE','X210_USAGE')
+  weekdays <- c('Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday')
+  colnames(dailyAggDf)[2] <- "DATE_KEY"
+  a <- merge(dailyAggDf, calendarRefDf, BY = "DATE_KEY")
+  a$TOTAL_CONSUMPTION <- a$TOTAL_CONSUMPTION/1024/1024
+
+    for(name in weekdays){
+      # Local Data
+      col_name_usage <- paste('local_',name,'_usage',sep='')
+      col_name_sessions_count <- paste('local_',name,'_sessions_count',sep='')
+      filtered_data <- a %>% filter(ROAMING_FLAG == "LOCAL" & DAY_NAME == name)
+      
+      exp <- paste("filtered_data %>% group_by(CONTRACT_KEY) %>% 
+        summarise(", col_name_usage, "= sum(TOTAL_CONSUMPTION),",col_name_sessions_count,"=sum(NO_OF_SESSIONS) )", sep = "")
+      local <- eval(parse(text = exp))
+      trainDf <- merge(trainDf,local, BY = "CONTRACT_KEY",all.x = T)
+      testDf <- merge(testDf,local, BY = "CONTRACT_KEY",all.x = T)
+      
+      ##Remove Na's 
+      #local usage
+      exp <- paste("trainDf <- trainDf %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),X210_USAGE/7,",col_name_usage,"))", sep= "")
+      eval(parse(text = exp))
+
+      #local sessions count
+      exp <- paste("trainDf <- trainDf %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),X210_SESSION_COUNT/7,",col_name_sessions_count,"))", sep= "")
+      eval(parse(text = exp))
+
+      ##Remove Na's
+      #testing
+      exp <- paste("testDf <- testDf %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),X210_USAGE/7,",col_name_usage,"))", sep= "")
+      eval(parse(text = exp))
+
+      exp <- paste("testDf <- testDf %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),X210_SESSION_COUNT/7,",col_name_sessions_count,"))", sep= "")
+      eval(parse(text = exp))
+
+      #Roaming Data
+      col_name_usage <- paste('roaming_',name,'_usage',sep='')
+      col_name_sessions_count <- paste('roaming_',name,'_sessions_count',sep='')
+
+      filtered_data <- a %>% filter(ROAMING_FLAG == "ROAMING" & DAY_NAME == name)
+      exp <- paste("filtered_data %>% group_by(CONTRACT_KEY) %>% 
+        summarise(", col_name_usage, "= sum(TOTAL_CONSUMPTION),",col_name_sessions_count,"=sum(NO_OF_SESSIONS) )", sep = "")
+      roaming <- eval(parse(text = exp))
+      trainDf <- merge(trainDf,roaming, BY = "CONTRACT_KEY",all.x = T)
+      testDf <- merge(testDf,roaming, BY = "CONTRACT_KEY",all.x = T) 
+
+      ##Remove Na's
+      #roamiming usage
+      exp <- paste("trainDf <- trainDf %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),R210_USAGE/7,",col_name_usage,"))", sep= "")
+      eval(parse(text = exp))
+
+      #roamiming sessions count
+      exp <- paste("trainDf <- trainDf %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),R210_SESSION_COUNT/7,",col_name_sessions_count,"))", sep= "")
+      eval(parse(text = exp))
+
+      ##Remove Na's
+      #roamiming usage
+      exp <- paste("testDf <- testDf %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),R210_USAGE/7,",col_name_usage,"))", sep= "")
+      eval(parse(text = exp))
+
+      #local sessions count
+      exp <- paste("testDf <- testDf %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),R210_SESSION_COUNT/7,",col_name_sessions_count,"))", sep= "")
+      eval(parse(text = exp))
+  }
+```
+
+
+##26- Add weekday and weekend data (Abanoub)
+Buidling on the previous approach, we build four more features, which is the usage and session count of the weekdays and weekends. This approach improved the score to `0.70333` so this approach is taken into account.
+```{r}
+  ## Train 
+  trainDf <- trainDf %>% rowwise() %>% mutate(
+    weekday_usage = sum(c(local_Sunday_usage,roaming_Sunday_usage,local_Monday_usage,roaming_Monday_usage,local_Tuesday_usage,roaming_Tuesday_usage,local_Wednesday_usage,roaming_Wednesday_usage,local_Thursday_usage,roaming_Thursday_usage))
+    ,
+    weekday_sessions_count = sum(c(local_Sunday_sessions_count,roaming_Sunday_sessions_count,local_Monday_sessions_count,roaming_Monday_sessions_count,local_Tuesday_sessions_count,roaming_Tuesday_sessions_count,local_Wednesday_sessions_count,roaming_Wednesday_sessions_count,local_Thursday_sessions_count,roaming_Thursday_sessions_count))
+    ,
+    weekend_usage = sum(c(local_Friday_usage,roaming_Friday_usage,local_Saturday_usage,roaming_Saturday_usage))
+    ,
+    weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Friday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
+   )
+
+  ## Test
+  testDf <- testDf %>% rowwise() %>% mutate(
+    weekday_usage = sum(c(local_Sunday_usage,roaming_Sunday_usage,local_Monday_usage,roaming_Monday_usage,local_Tuesday_usage,roaming_Tuesday_usage,local_Wednesday_usage,roaming_Wednesday_usage,local_Thursday_usage,roaming_Thursday_usage))
+    ,
+    weekday_sessions_count = sum(c(local_Sunday_sessions_count,roaming_Sunday_sessions_count,local_Monday_sessions_count,roaming_Monday_sessions_count,local_Tuesday_sessions_count,roaming_Tuesday_sessions_count,local_Wednesday_sessions_count,roaming_Wednesday_sessions_count,local_Thursday_sessions_count,roaming_Thursday_sessions_count))
+    ,
+    weekend_usage = sum(c(local_Friday_usage,roaming_Friday_usage,local_Saturday_usage,roaming_Saturday_usage))
+    ,
+    weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Friday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
+   )
+```
+
+
+##27- Adding features from aggregate functions (Mimi)
+Continuing on 26, I added features representing mean and standard deviation and median between the monthly usage and session count columns, but it scored slightly less with 0.70053, so this approach is neglected.
+```{r eval=FALSE}
+trainDf <- trainDf %>% rowwise() %>% mutate(
+    mean_usage = mean(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)),
+
+    sd_usage =sd(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)),
+
+    median_usage = median(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE) ),
+
+    mean_sessions_count=mean(c(X206_SESSION_COUNT,X207_SESSION_COUNT,X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT)),
+    
+    median_sessions_count=median(c(X206_SESSION_COUNT,X207_SESSION_COUNT,
+      X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT)),
+    
+    sd_sessions_count=sd(c(X206_SESSION_COUNT,X207_SESSION_COUNT,X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT))
+    )
+
+  testDf <- testDf %>% rowwise() %>% mutate(
+    mean_usage = mean(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)),
+
+    sd_usage =sd(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)),
+
+    median_usage = median(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE) ),
+
+    mean_sessions_count=mean(c(X206_SESSION_COUNT,X207_SESSION_COUNT,X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT)),
+    
+    median_sessions_count=median(c(X206_SESSION_COUNT,X207_SESSION_COUNT,
+      X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT)),
+    
+    sd_sessions_count=sd(c(X206_SESSION_COUNT,X207_SESSION_COUNT,X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT))
+    )
+```
+
+##28- Weighting missing days (Amir)
+In approaches 25 & 26, the missing daily data was calculated by dividing the fifth monthly data among the seven days of the week. A more intuitive approach is followed here by looking at the available montly data distribution among the week days, and inferring the missing daily data to have the same distribution among the week days.So, the code in 25 is modified to be:
+```{r eval=FALSE}
+allDaysTotal <- sum(a$TOTAL_CONSUMPTION)
+dailyWeights <- a %>% group_by(DAY_NAME) %>% summarize(dayConsumption=sum(TOTAL_CONSUMPTION) / allDaysTotal)
+
+for(name in weekdays){
+  #daily weight
+  weight <- dailyWeights[dailyWeights$DAY_NAME==name,c("dayConsumption")]
+  weight <- weight[[1]]
+  
+  # Local Data
+  col_name_usage <- paste('local_',name,'_usage',sep='')
+  col_name_sessions_count <- paste('local_',name,'_sessions_count',sep='')
+  filtered_data <- a %>% filter(ROAMING_FLAG == "LOCAL" & DAY_NAME == name)
+  
+  exp <- paste("filtered_data %>% group_by(CONTRACT_KEY) %>% 
+               summarise(", col_name_usage, "= sum(TOTAL_CONSUMPTION),",col_name_sessions_count,"=sum(NO_OF_SESSIONS) )", sep = "")
+  local <- eval(parse(text = exp))
+  trainDf <- merge(trainDf,local, BY = "CONTRACT_KEY",all.x = T)
+  testDf <- merge(testDf,local, BY = "CONTRACT_KEY",all.x = T)
+  
+  ##Remove Na's
+  #local usage
+  exp <- paste("trainDf <- trainDf %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),X210_USAGE * weight,",col_name_usage,"))", sep= "")
+  eval(parse(text = exp))
+  
+  #local sessions count
+  exp <- paste("trainDf <- trainDf %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),X210_SESSION_COUNT * weight,",col_name_sessions_count,"))", sep= "")
+  eval(parse(text = exp))
+  
+  ##Remove Na's
+  #testing
+  exp <- paste("testDf <- testDf %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),X210_USAGE * weight,",col_name_usage,"))", sep= "")
+  eval(parse(text = exp))
+  
+  exp <- paste("testDf <- testDf %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),X210_SESSION_COUNT * weight,",col_name_sessions_count,"))", sep= "")
+  eval(parse(text = exp))
+  
+  #Roaming Data
+  col_name_usage <- paste('roaming_',name,'_usage',sep='')
+  col_name_sessions_count <- paste('roaming_',name,'_sessions_count',sep='')
+  
+  filtered_data <- a %>% filter(ROAMING_FLAG == "ROAMING" & DAY_NAME == name)
+  exp <- paste("filtered_data %>% group_by(CONTRACT_KEY) %>% 
+               summarise(", col_name_usage, "= sum(TOTAL_CONSUMPTION),",col_name_sessions_count,"=sum(NO_OF_SESSIONS) )", sep = "")
+  roaming <- eval(parse(text = exp))
+  trainDf <- merge(trainDf,roaming, BY = "CONTRACT_KEY",all.x = T)
+  testDf <- merge(testDf,roaming, BY = "CONTRACT_KEY",all.x = T) 
+  
+  ##Remove Na's
+  #roamiming usage
+  exp <- paste("trainDf <- trainDf %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),R210_USAGE * weight,",col_name_usage,"))", sep= "")
+  eval(parse(text = exp))
+  
+  #roamiming sessions count
+  exp <- paste("trainDf <- trainDf %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),R210_SESSION_COUNT * weight,",col_name_sessions_count,"))", sep= "")
+  eval(parse(text = exp))
+  
+  
+  ##Remove Na's
+  #roamiming usage
+  exp <- paste("testDf <- testDf %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),R210_USAGE * weight,",col_name_usage,"))", sep= "")
+  eval(parse(text = exp))
+  
+  #local sessions count
+  exp <- paste("testDf <- testDf %>% mutate(",col_name_sessions_count,"= ifelse(is.na(",col_name_sessions_count,"),R210_SESSION_COUNT * weight,",col_name_sessions_count,"))", sep= "")
+  eval(parse(text = exp))
+}
+```
+However, this approach scored `0.69831` which is less than the original even distribution among the 7 days, so the approach here is neglected.
+
+##29- Add average usage slope (Amir)
+Building on 26 (the last score successful approach), we add one more feature representing the average usage slope amomg the 5 months. But this approach produced a decreased score of `0.69886` and was discarded.
+```{r eval=FALSE}
+trainDf <- trainDf %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, avgDif = (diff1 + diff2 + diff3 + diff4) / 4)
+testDf <- testDf %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, avgDif = (diff1 + diff2 + diff3 + diff4) / 4)
+```
+
+##30- Training smaller model with no redundant features (Amir)
+Building on all the features in the last successful approach, a feature selection was carried on them. The intuition behind it was as follows: In the last feature set, there was the data for the 5th month along with data for each of the seven days in the 5th month along with weekend and weekday data in the 5th month. So, the idea here was to remove any seemingly redundant representations referring to the same thing in different ways. The features with respect to the 5th month and each day of week was removed, keeping only weekday and weekend features, and dividing them to local and roaming data.
+```{r eval=FALSE}
+myModel <- MLP(
+  TARGET ~ X206_SESSION_COUNT + X206_USAGE +
+    X207_SESSION_COUNT + X207_USAGE +
+    X208_SESSION_COUNT + X208_USAGE +
+    X209_SESSION_COUNT + X209_USAGE +
+    weekday_local_session_count + weekday_local_usage + 
+    weekend_local_session_count + weekend_local_usage + 
+    R206_SESSION_COUNT + R206_USAGE +
+    R207_SESSION_COUNT + R207_USAGE +
+    R208_SESSION_COUNT + R208_USAGE +
+    R209_SESSION_COUNT + R209_USAGE +
+    weekday_roaming_usage + + weekday_roaming_session_count +
+    weekend_roaming_usage + + weekend_roaming_session_count
+  , data = trainDf
+)
+```
+However, a less score of `0.68192` was obtained, and the removed features are added again.
+
 ##31- Adding a feature that reflects an increasing level of usage in the 5th month (Tony)
 A new parameter was added depending on exceeding the average (mean) usage of the 4 months in the 5th one.
 ```{r eval=FALSE}
 trainDf <- trainDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
 testDf <- testDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
 ```
-Adding this new parameter to the predictions yields a score of `0.66639`, which is not an improvement.
+Adding this new parameter to the predictions yields a score of `0.66639`, which is not an improvement, so this approach is neglected.
 
 ##Analysing the `VALUE_SEGMENT` from `contract_ref` (Tony)
 Let's check the unique values for the value segment:
@@ -697,3 +951,9 @@ trainDf$RATE_PLAN_VALUE[is.na(trainDf$RATE_PLAN_VALUE)] <- dominant_rate_plan_va
 testDf$RATE_PLAN_VALUE[is.na(testDf$RATE_PLAN_VALUE)] <- dominant_rate_plan_value_test(testDf$mean_usage_app)
 ```
 Adding the calculated `RATE_PLAN_VALUE` to the predictions yields a score of `0.65238`.
+
+##36- Ensemble Kaggle Submissions (Mimi)
+We tried to improve our score by ensembling some of our best submissions. We calculted the correlation between submissions using this pythong script which is viewable in the Kaggle-Ensemble-Guide repo [correlations.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/correlations.py).
+When choosing high-correlated submissions the score changed slightly (which made sense). An example of that is that the score changed from `0.70053` to `0.70071` (best score so far) when we ensembled the submissions 25 & 26 with weights 1 and 3 respectively using the voting approach described here [kaggle_vote.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/kaggle_vote.py).
+
+We also tried to ensmeble low-correlated submissions of the two approaches in `26` and `36` and and this gave a decreased score of `0.68192`.
