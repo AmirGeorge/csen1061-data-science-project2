@@ -807,7 +807,7 @@ vs_frequencies
 Let's plot the result showing the frequencies where the X-Axis is for the `VALUE_SEGMENT` and the Y-Axis is for the corresponding frequency `VS_frequency`:
 ```{r}
 vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
-labs(title = "The frequency of the Value Segments while having 'N/A's", x = "Value Segment", y = "Frequency")
+labs(title = "The frequency of the Value Segments before cleaning/replacing the 'N/A's", x = "Value Segment", y = "Frequency")
 ```
 
 As we can see, almost half of the customers have a `VALUE_SEGMENT` of `Core`. It can be assumed that this is the default value untill some upgrade happens to classify the customer in a different higher category.
@@ -825,7 +825,7 @@ Let's check its relation with the `VALUE_SEGMENT`:
 
 ####Enterprise Shared Data Bundle
 ```{r}
-vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "Enterprise Shared Data Bundle") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "Enterprise Shared Data Bundle", VALUE_SEGMENT != "N/A") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
 vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
 labs(title = "Enterprise Shared Data Bundle", x = "Value Segment", y = "Frequency")
@@ -836,7 +836,7 @@ So let's check their corresponding relations with the `VALUE_SEGMENT`.
 
 ####2013 Business El Asly 30
 ```{r}
-vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "2013 Business El Asly 30") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "2013 Business El Asly 30", VALUE_SEGMENT != "N/A") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
 vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
 labs(title = "2013 Business El Asly 30", x = "Value Segment", y = "Frequency")
@@ -844,7 +844,7 @@ labs(title = "2013 Business El Asly 30", x = "Value Segment", y = "Frequency")
 
 ####Business Flex 35
 ```{r}
-vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "Business Flex 35") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "Business Flex 35", VALUE_SEGMENT != "N/A") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
 vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
 labs(title = "Business Flex 35", x = "Value Segment", y = "Frequency")
@@ -852,7 +852,7 @@ labs(title = "Business Flex 35", x = "Value Segment", y = "Frequency")
 
 ####2014 ElAsly Plus 35
 ```{r}
-vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "2014 ElAsly Plus 35") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "2014 ElAsly Plus 35", VALUE_SEGMENT != "N/A") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
 vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
 labs(title = "2014 ElAsly Plus 35", x = "Value Segment", y = "Frequency")
@@ -860,7 +860,7 @@ labs(title = "2014 ElAsly Plus 35", x = "Value Segment", y = "Frequency")
 
 ####Red 150
 ```{r}
-vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "Red 150") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
+vs_frequencies <- contractRefDf %>% filter(RATE_PLAN == "Red 150", VALUE_SEGMENT != "N/A") %>% group_by(VALUE_SEGMENT) %>% summarise(VS_frequency = length(CONTRACT_KEY)) %>% arrange(desc(VS_frequency))
 vs_frequencies
 vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
 labs(title = "Red 150", x = "Value Segment", y = "Frequency")
@@ -887,7 +887,7 @@ vs_frequencies
 Let's plot the result showing the frequencies where the X-Axis is for the `VALUE_SEGMENT` and the Y-Axis is for the corresponding frequency `VS_frequency`:
 ```{r}
 vs_frequencies %>% ggplot(aes(x = VALUE_SEGMENT, y = VS_frequency)) + geom_bar(stat='identity') +
-labs(title = "The frequency of the Value Segments without having 'N/A's", x = "Value Segment", y = "Frequency")
+labs(title = "The frequency of the Value Segments after cleaning/replacing the 'N/A's", x = "Value Segment", y = "Frequency")
 ```
 
 As we can see, almost half of the customers have a `VALUE_SEGMENT` of `Core` which is the dominant one.
