@@ -148,7 +148,7 @@ getEvaluation <- function(confMat) {
 The function `evaluateModel` uses stratified 10-fold cross-validation to evaluate the input model, and calls the `getEvaluation` function to obtain the relevant scores, then outputs them.
 ```{r}
 evaluateModel <- function(model){
-  tenFoldModel <- evaluate_Weka_classifier(model, numFolds = 10, seed = 123)
+  tenFoldModel <- evaluate_Weka_classifier(model, numFolds = 5, seed = 123)
   tenFoldModel$confusionMatrix %>% getEvaluation %>% kable
 }
 ```
@@ -165,6 +165,14 @@ By trying on on the Naive Bayes classifier, a score of `0.56603` was obtained, w
 
 ##6- Support Vector Machine classifier (Amir)
 By trying on on the Support Vector Machine (SMO) classifier, a score of `0.50000` was obtained, which was less than that obtained from the Decision Tree classifier, so this approach was neglected.
+
+##8- Neural Network classifier (Abanoub)
+By trying on on the Neural Network (NN) classifier, a score of `0.63391 ` was obtained, which is the highest score from all classifiers, so this is the classifier that will be used from now on.
+```{r cache=TRUE}
+nnmodel <- MLP(TARGET~., data=trainDf)
+evaluateModel(nnmodel)
+rm(nnmodel)
+```
 
 ##9- Neural Network with removing `SESSION_COUNT` columns (Amir)
 By continuing on number `8` above (NN classifier), I removed all `SESSION_COUNT` from the prediction. The intuition behind this approach is that `USAGE` is the main concern here. However, a decreased score of `0.58118` was obtained, proving that session count indeed matters, and the approach here was neglected.
@@ -191,6 +199,7 @@ A score of `0.62686` was obtained which is surprisingly not much less than the o
 
 ##12- Neural Network with removing `CONTRACT_KEY` from predictions (Amir)
 I realized that the `CONTRACT_KEY` in both the train and test datasets factored as an integer in the predictions, which does not make sense at all. So, by removing it from predictions, an improved score of `0.65550` was obtained with the NN classifier. So, this approach is taken into account from now on.
+Now for this model evaluation:
 
 ##13- Feature extraction to integrating roaming data (Amir)
 Buidling on the approach in `12`, I integrated with the roaming data from the `roaming_monthly.csv` file. For both the train and test datasets, 10 extra features were added as the roaming usage and roaming number of sessions for each of the 5 months. The values of these columns were extracted from `roaming_monthly.csv`.
