@@ -485,6 +485,57 @@ trainDf %>% filter(X210_USAGE > 4000 & TARGET == 1) %>% nrow
 trainDf %>% filter(X210_USAGE > 4000 & TARGET == 0) %>% nrow
 ```
 
+##-- Some insight into the data (Tony)
+```{r}
+trainDf <- trainDf %>% rowwise() %>% mutate(mean_usage_temp = mean(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)))
+trainDf <- trainDf %>% rowwise() %>% mutate(mean_session_count_temp = mean(c(X206_SESSION_COUNT,X207_SESSION_COUNT,X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT)))
+trainDf <- trainDf %>% rowwise() %>% mutate(total_session_count_temp = X206_SESSION_COUNT+X207_SESSION_COUNT+X208_SESSION_COUNT+X209_SESSION_COUNT+X210_SESSION_COUNT)
+```
+The percentage of users whose mean data usage is < 100 MB to be target 0
+```{r}
+percentage_calculator(0,100,"mean_usage_temp")
+```
+
+The percentage of users whose mean data usage is < 500 MB to be target 0
+```{r}
+percentage_calculator(0,500,"mean_usage_temp")
+```
+
+The percentage of users whose mean data usage is < 1000 MB to be target 0
+```{r}
+percentage_calculator(0,1000,"mean_usage_temp")
+```
+
+The percentage of users whose mean session count is < 5 to be target 0
+```{r}
+percentage_calculator(0,5,"mean_session_count_temp")
+```
+
+The percentage of users whose mean session count is < 50 to be target 0
+```{r}
+percentage_calculator(0,50,"mean_session_count_temp")
+```
+
+The percentage of users whose mean session count is < 500 to be target 0
+```{r}
+percentage_calculator(0,500,"mean_session_count_temp")
+```
+
+The percentage of users whose total session count is < 50 to be target 0
+```{r}
+percentage_calculator(0,50,"total_session_count_temp")
+```
+
+The percentage of users whose total session count is < 500 to be target 0
+```{r}
+percentage_calculator(0,500,"total_session_count_temp")
+```
+
+The percentage of users whose total session count is < 1000 to be target 0
+```{r}
+percentage_calculator(0,1000,"total_session_count_temp")
+```
+
 ##18- Attempt to add features from slope and monthly distance (Mimi)
 Building on 15, added 4 features representing differences between each two consecutive months, and one feature representing the average between the 4 differences (which represents an average slope). And a sixth feature representing average difference between last and first months. When factoring those 6 features in the prediction, a lesser score of 0.67884 was obtained.
 ```{r eval=FALSE}
