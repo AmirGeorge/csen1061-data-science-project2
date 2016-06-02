@@ -1047,4 +1047,14 @@ When choosing high-correlated submissions the score changed slightly (which made
 
 We also tried to ensmeble low-correlated submissions of the two approaches in `26` and `36` and and this gave a decreased score of `0.68192`.
 
+##-- Local CV on our final features (Amir)
+To recap our previous work that was taken into consideration, we have added many features that have increased our kaggle score, and temporarily added some features that unfortunately did not and ultimately removed them. In some of the intermediate steps, we have relied on the kaggle scoring to determine the usefulness of features, as performing cross validation in every minor step was time-consuming and unpractical.
+Using the chosen final features, I have run a one time 5-fold cross validation on my local machine, using these features and 4 diferrent models: 
 
+![Results of one-time 5-fold CV on MLP classifier trained on final features](figures/MLP-final.png)
+
+![Results of one-time 5-fold CV on J48 classifier trained on final features](figures/J48-final.png)
+
+![Results of one-time 5-fold CV on NB classifier trained on final features](figures/NB-final.png)
+
+![Results of one-time 5-fold CV on SMO classifier trained on final features](figures/SMO-final.png)
