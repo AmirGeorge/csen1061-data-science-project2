@@ -1,6 +1,6 @@
 ---
 title: "Project2-DataScience"
-author: "Mimi Mimi, Amir George, Tony Foti"
+author: "Abanoub Mimi, Amir George, Tony Foti"
 date: "May 8, 2016"
 output: html_document
 ---
@@ -576,7 +576,7 @@ monthly_usage_columns <- c('X206_USAGE','X207_USAGE','X208_USAGE','X209_USAGE','
 ```
 
 
-##26- Add weekday and weekend data (Abanoub)
+##26- Add weekday and weekend data (Mimi)
 Buidling on the previous approach, we build four more features, which is the usage and session count of the weekdays and weekends. This approach improved the score to `0.70333` so this approach is taken into account.
 ```{r}
   ## Train 
@@ -998,6 +998,6 @@ Adding the calculated `RATE_PLAN_VALUE` to the predictions yields a score of `0.
 
 ##36- Ensemble Kaggle Submissions (Mimi)
 We tried to improve our score by ensembling some of our best submissions. We calculted the correlation between submissions using this pythong script which is viewable in the Kaggle-Ensemble-Guide repo [correlations.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/correlations.py).
-When choosing high-correlated submissions the score changed slightly (which made sense). An example of that is that the score changed from `0.70053` to `0.70071` (best score so far) when we ensembled the submissions 25 & 26 with weights 1 and 3 respectively using the voting approach described here [kaggle_vote.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/kaggle_vote.py).
+When choosing high-correlated submissions the score changed slightly (which made sense). An example of that is that the score changed from `0.70333` to `0.70359` (best score so far) when we ensembled the submissions 25 & 26 with weights 1 and 3 respectively using the voting approach described here [kaggle_vote.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/kaggle_vote.py).
 
 We also tried to ensmeble low-correlated submissions of the two approaches in `26` and `36` and and this gave a decreased score of `0.68192`.
