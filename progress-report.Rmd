@@ -564,6 +564,10 @@ Some of the `RATE_PLAN_VALUE` values we have have had a combination of plans tha
 contractRefDf$RATE_PLAN_VALUE <- contractRefDf$RATE_PLAN_VALUE %>% sapply(function(x) x %>% strsplit(" ") %>% sapply(function(y) as.numeric(y)) %>% mean)
 contractRefDf$RATE_PLAN_VALUE <- as.factor(contractRefDf$RATE_PLAN_VALUE)
 ```
+Let's see the different levels in the `RATE_PLAN_VALUE` how they look:
+```{r}
+contractRefDf$RATE_PLAN_VALUE %>% unique
+```
 Let's check the number of levels now:
 ```{r}
 contractRefDf$RATE_PLAN_VALUE %>% unique %>% length
