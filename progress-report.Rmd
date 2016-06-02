@@ -455,6 +455,36 @@ contractRefDf$GENDER[contractRefDf$GENDER == "Not Entered"] <- "Unknown"
 ```
 So adding the `GENDER` to the predicitions after the above modifications, we get a score of `0.66270` (less than the last state before adding the `GENDER` to the predictions).
 
+##-- Some insight into the data (Mimi)
+```{r}
+percentage_calculator <- function(target, threshold, colName){
+    exp <- paste("(trainDf %>% filter(",colName,"< threshold & TARGET == target) %>% nrow() / trainDf %>% filter(",colName,"< threshold) %>% nrow()  ) * 100",sep='')
+    eval(parse(text = exp))
+}
+range(trainDf$X210_USAGE)
+```
+ 
+The percentag of users who have X210_USAGE < 100MB to be target 0
+```{r}
+percentage_calculator(0,100,"X210_USAGE")
+```
+ 
+The percentag of users who have X210_USAGE < 500MB to be target 0
+```{r}
+percentage_calculator(0,500,"X210_USAGE")
+```
+ 
+The percentag of users who have X210_USAGE < 2000MB to be target 0
+```{r}
+percentage_calculator(0,2000,"X210_USAGE")
+```
+ 
+The number of users with target euqal to 1 become to overcome the users with target 0 when X210_USAGE execeds almost 4000 MB
+```{r}
+trainDf %>% filter(X210_USAGE > 4000 & TARGET == 1) %>% nrow
+trainDf %>% filter(X210_USAGE > 4000 & TARGET == 0) %>% nrow
+```
+
 ##18- Attempt to add features from slope and monthly distance (Mimi)
 Building on 15, added 4 features representing differences between each two consecutive months, and one feature representing the average between the 4 differences (which represents an average slope). And a sixth feature representing average difference between last and first months. When factoring those 6 features in the prediction, a lesser score of 0.67884 was obtained.
 ```{r eval=FALSE}
@@ -1222,8 +1252,13 @@ In general, when we used Azure classsifers We used range parameters, to give the
 
 
 ## Evaluation by splitting data on Azure server (Mimi)
-With addition to the CV we did on Azure server, we did another evaluation on Azure by splitting the train data into stratified samples where the data is to be trained is 70% of the whole data.
+In addition to the CV we did on Azure server, we did another evaluation on Azure of the neural network model by splitting the train data into stratified samples where the data to be trained is 70% of the whole data.
 ```{r}
-evaluateModel <- read.csv('CrossValidationsDataFramesAzure/evaluateModel.csv')
-evaluateModel %>% kable
+evalModel <- read.csv('CrossValidationsDataFramesAzure/evaluateModel.csv')
+evalModel %>% kable
 ```
+
+# Conclusion (Amir)
+Throughout the whole course of our work, we have utilized different features. We had an initial thought that the usage only would be of importance. However, the session count data proved useful as well and factoring it caused better predictions.
+Although the roaming data was covering only a small percentage of the users in both datasets, our predictions were improved by adding features extracted from it. We believe that the relatively small availability of roaming data is attributed to the fact that using roaming mobile data is indeed relatively rare compared to local data.
+Last but not least, features extracted from the daily aggregate data of the last month slightly improved our predictions as well. It was impractical to add features representing the usage and session count for each of the 30 days. So, instead, we added features representing each of the seven days of the week. Last but not least, adding features representing usage and session count for the weekends and weekdays slightly improved our results. This points to a relation between user behaviour and the day being a weekday or weekend.
