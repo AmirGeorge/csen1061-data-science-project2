@@ -608,7 +608,7 @@ contractRefDf$GENDER[contractRefDf$GENDER == &quot;Not Entered&quot;] &lt;- &quo
 <p>So adding the <code>GENDER</code> to the predicitions after the above modifications, we get a score of <code>0.66270</code> (less than the last state before adding the <code>GENDER</code> to the predictions).</p>
 </div>
 <div id="analysing-and-extracting-new-features-from-rate_plan-and-adding-it-to-the-predictions---trial-1-tony" class="section level2">
-<h2>18- Analysing and extracting new features from <code>RATE_PLAN</code> and adding it to the predictions - Trial 1 (Tony)</h2>
+<h2>22- Analysing and extracting new features from <code>RATE_PLAN</code> and adding it to the predictions - Trial 1 (Tony)</h2>
 <pre class="r"><code>contractRefDfTemp &lt;- contractRefDf</code></pre>
 <p>As it was mentioned before, a large number of levels exist for such feature.</p>
 <pre class="r"><code>contractRefDfTemp$RATE_PLAN %&gt;% unique %&gt;% length</code></pre>
@@ -776,7 +776,7 @@ contractRefDfTemp$RATE_PLAN &lt;- as.factor(contractRefDfTemp$RATE_PLAN)</code><
 <p>As we can see, the impact was remarkable; as the <code>RATE_PLAN</code> levels dropped from 183 to 83 only. However, adding it to the predictions, the score has decreased to <code>0.58943</code>. Hence, this approach has to be excluded for the moment until further feature engineering concerning the <code>RATE_PLAN</code> are applied.</p>
 </div>
 <div id="analysing-the-handset_name-from-contractrefdf-and-extracting-some-features-from-it-to-include-in-the-predictions-tony" class="section level2">
-<h2>19- Analysing the <code>HANDSET_NAME</code> from <code>contractRefDf</code> and extracting some features from it to include in the predictions (Tony)</h2>
+<h2>23- Analysing the <code>HANDSET_NAME</code> from <code>contractRefDf</code> and extracting some features from it to include in the predictions (Tony)</h2>
 <p>First, let’s see the different possible values for the <code>HANDSET_NAME</code>.</p>
 <pre class="r"><code>contractRefDf$HANDSET_NAME %&gt;% unique %&gt;% length</code></pre>
 <pre><code>## [1] 2058</code></pre>
@@ -794,13 +794,13 @@ contractRefDf$HANDSET_CAT &lt;- as.factor(contractRefDf$HANDSET_CAT)</code></pre
 <p>Adding the <code>HANDSET_CAT</code> to the predicitions, we get a minimum score of <code>0.50000</code>. Hence, more feature engineering has to be done on this feature to obtain positive impact from it.</p>
 </div>
 <div id="assuming-that-the-iphone-users-are-the-most-likely-to-exceed-their-average-usage-tony" class="section level2">
-<h2>20- Assuming that the <code>iPhone</code> users are the most likely to exceed their average usage (Tony)</h2>
+<h2>24- Assuming that the <code>iPhone</code> users are the most likely to exceed their average usage (Tony)</h2>
 <p>Assuming that the different devices used have different data usage/consumption according to the firmware and other factors that may, added up to the personal customer’s usage, reflect an intention to exceed the usage limit. So let’s extract a new parameter differentiating the <code>iPhone</code> users from the others:</p>
 <pre class="r"><code>contractRefDf &lt;- contractRefDf %&gt;% mutate(iPhone = ifelse(grepl(&quot;iPhone&quot;, HANDSET_NAME), 1, 0))</code></pre>
 <p>Adding this feature to the predictions yields a score of <code>0.67081</code>, which is not an improvement. Hence, taking the used device into account for the predictions won’t be considered for the moment.</p>
 </div>
 <div id="adding-a-feature-that-reflects-an-increasing-level-of-usage-in-the-5th-month-tony" class="section level2">
-<h2>21- Adding a feature that reflects an increasing level of usage in the 5th month (Tony)</h2>
+<h2>31- Adding a feature that reflects an increasing level of usage in the 5th month (Tony)</h2>
 <p>A new parameter was added depending on exceeding the average (mean) usage of the 4 months in the 5th one.</p>
 <pre class="r"><code>trainDf &lt;- trainDf %&gt;% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) &lt; X210_USAGE, 1, 0))
 testDf &lt;- testDf %&gt;% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) &lt; X210_USAGE, 1, 0))</code></pre>
@@ -951,7 +951,7 @@ labs(title = &quot;Red 150&quot;, x = &quot;Value Segment&quot;, y = &quot;Frequ
 </div>
 </div>
 <div id="cleaning-the-na-values-from-the-value_segment-and-adding-it-to-the-predictions-tony" class="section level2">
-<h2>22- Cleaning the “N/A” values from the <code>VALUE_SEGMENT</code> and adding it to the predictions (Tony)</h2>
+<h2>32- Cleaning the “N/A” values from the <code>VALUE_SEGMENT</code> and adding it to the predictions (Tony)</h2>
 <p>Let’s infer the “N/A” values of the <code>VALUE_SEGMENT</code> through its relation with the <code>RATE_PLAN</code> by replacing the <code>VALUE_SEGMENT</code> having an “N/A” value with the dominant <code>VALUE_SEGMENT</code> value corresponding to the same <code>RATE_PLAN</code>. If it’s still an “N/A” value, then take the second dominant one.</p>
 <pre class="r"><code>dominant_value_segment &lt;- function(rate_plan){
     vs_frequencies &lt;- contractRefDf %&gt;% filter(RATE_PLAN == rate_plan, VALUE_SEGMENT != &quot;N/A&quot;) %&gt;% group_by(VALUE_SEGMENT) %&gt;% summarise(VS_frequency = length(CONTRACT_KEY)) %&gt;% arrange(desc(VS_frequency))
@@ -981,7 +981,7 @@ labs(title = &quot;The frequency of the Value Segments without having 'N/A's&quo
 <p>Adding the <code>VALUE_SEGMENT</code> to the predicitons now yields a score of <code>0.63465</code>, which is not an improvement.</p>
 </div>
 <div id="analysing-and-extracting-new-features-from-rate_plan-and-adding-it-to-the-predictions---trial-2-tony" class="section level2">
-<h2>23- Analysing and extracting new features from <code>RATE_PLAN</code> and adding it to the predictions - Trial 2 (Tony)</h2>
+<h2>33- Analysing and extracting new features from <code>RATE_PLAN</code> and adding it to the predictions - Trial 2 (Tony)</h2>
 <p>Let’s try to extract the moneytary value from the <code>RATE_PLAN</code> and then include it in the predictions, in a new column/attribute <code>RATE_PLAN_VALUE</code>.</p>
 <p>First, let’s remove the year value:</p>
 <pre class="r"><code>contractRefDf &lt;- contractRefDf %&gt;% mutate(RATE_PLAN_VALUE = gsub(&quot;[2][0][0-9][0-9] &quot;, &quot;&quot;, contractRefDf$RATE_PLAN))</code></pre>
@@ -1012,9 +1012,9 @@ contractRefDf$RATE_PLAN_VALUE &lt;- gsub(&quot;[a-zA-Z]+ &quot;, &quot;&quot;, c
 <p>Adding the <code>RATE_PLAN_VALUE</code> to the predicitions yields a score of <code>0.64236</code>.</p>
 </div>
 <div id="adding-the-approaches-of-the-2-trials-of-extracting-features-from-the-rate_plan-in-the-contractrefdf-tony" class="section level2">
-<h2>24- Adding the approaches of the 2 trials of extracting features from the <code>RATE_PLAN</code> in the <code>contractRefDf</code> (Tony)</h2>
+<h2>34- Adding the approaches of the 2 trials of extracting features from the <code>RATE_PLAN</code> in the <code>contractRefDf</code> (Tony)</h2>
 <pre class="r"><code>contractRefDfTemp &lt;- contractRefDf</code></pre>
-<p>So building on 23 and applying what was done in 18 by updating the <code>RATE_PLAN</code> as follows: Discarding the year value from the <code>RATE_PLAN</code> in addition to the other numerical values such as the amount of GBs and the rate plan monetary value.</p>
+<p>So building on 33 and applying what was done in 22 by updating the <code>RATE_PLAN</code> as follows: Discarding the year value from the <code>RATE_PLAN</code> in addition to the other numerical values such as the amount of GBs and the rate plan monetary value.</p>
 <pre class="r"><code>contractRefDfTemp$RATE_PLAN &lt;- gsub(&quot;[2][0][0-9][0-9] &quot;, &quot;&quot;, contractRefDfTemp$RATE_PLAN)
 contractRefDfTemp$RATE_PLAN &lt;- gsub(&quot; [0-9]+(\\.[0-9]*)* GB&quot;, &quot;&quot;, contractRefDfTemp$RATE_PLAN)
 contractRefDfTemp$RATE_PLAN &lt;- gsub(&quot; [0-9]+&quot;, &quot;&quot;, contractRefDfTemp$RATE_PLAN)
@@ -1022,8 +1022,8 @@ contractRefDfTemp$RATE_PLAN &lt;- as.factor(contractRefDfTemp$RATE_PLAN)</code><
 <p>So adding both the updated <code>RATE_PLAN</code> and the <code>RATE_PLAN_VALUE</code> (calculated in 23) together to the predictions, we obtain a minimum score of <code>0.50000</code>.</p>
 </div>
 <div id="analysing-and-extracting-new-features-from-rate_plan-and-adding-it-to-the-predictions---trial-3-tony" class="section level2">
-<h2>31- Analysing and extracting new features from <code>RATE_PLAN</code> and adding it to the predictions - Trial 3 (Tony)</h2>
-<p>Building on 23 (Trial 2), let’s proceed to have a <code>RATE_PLAN_VALUE</code> for all the rate plans we have. Some of the <code>RATE_PLAN_VALUE</code> values we have have had a combination of plans that had their corresponding moneytary values, hence at this stage for such examples, the <code>RATE_PLAN_VALUE</code> might have two moneytary values; such as ‘30 150’. So let’s extract the numerical values out and get their mean. The single values will remain as they are and the non numerical values (the rate plans that didn’t contain any moneytary value such as <code>Enterprise Shared Data Bundle</code>) will have their <code>RATE_PLAN_VALUE</code> as NAs.</p>
+<h2>35- Analysing and extracting new features from <code>RATE_PLAN</code> and adding it to the predictions - Trial 3 (Tony)</h2>
+<p>Building on 33 (Trial 2), let’s proceed to have a <code>RATE_PLAN_VALUE</code> for all the rate plans we have. Some of the <code>RATE_PLAN_VALUE</code> values we have have had a combination of plans that had their corresponding moneytary values, hence at this stage for such examples, the <code>RATE_PLAN_VALUE</code> might have two moneytary values; such as ‘30 150’. So let’s extract the numerical values out and get their mean. The single values will remain as they are and the non numerical values (the rate plans that didn’t contain any moneytary value such as <code>Enterprise Shared Data Bundle</code>) will have their <code>RATE_PLAN_VALUE</code> as NAs.</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN_VALUE &lt;- contractRefDf$RATE_PLAN_VALUE %&gt;% sapply(function(x) x %&gt;% strsplit(&quot; &quot;) %&gt;% sapply(function(y) as.numeric(y)) %&gt;% mean)
 contractRefDf$RATE_PLAN_VALUE &lt;- as.factor(contractRefDf$RATE_PLAN_VALUE)</code></pre>
 <p>Let’s check the number of levels now:</p>

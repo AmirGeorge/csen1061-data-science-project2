@@ -328,7 +328,7 @@ contractRefDf$GENDER[contractRefDf$GENDER == "Not Entered"] <- "Unknown"
 ```
 So adding the `GENDER` to the predicitions after the above modifications, we get a score of `0.66270` (less than the last state before adding the `GENDER` to the predictions).
 
-##18- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 1 (Tony)
+##22- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 1 (Tony)
 ```{r}
 contractRefDfTemp <- contractRefDf
 ```
@@ -374,7 +374,7 @@ contractRefDfTemp$RATE_PLAN %>% unique %>% length
 As we can see, the impact was remarkable; as the `RATE_PLAN` levels dropped from 183 to 83 only.
 However, adding it to the predictions, the score has decreased to `0.58943`. Hence, this approach has to be excluded for the moment until further feature engineering concerning the `RATE_PLAN` are applied.
 
-##19- Analysing the `HANDSET_NAME` from `contractRefDf` and extracting some features from it to include in the predictions (Tony)
+##23- Analysing the `HANDSET_NAME` from `contractRefDf` and extracting some features from it to include in the predictions (Tony)
 First, let's see the different possible values for the `HANDSET_NAME`.
 ```{r}
 contractRefDf$HANDSET_NAME %>% unique %>% length
@@ -395,7 +395,7 @@ contractRefDf$HANDSET_CAT %>% unique %>% length
 ```
 Adding the `HANDSET_CAT` to the predicitions, we get a minimum score of `0.50000`. Hence, more feature engineering has to be done on this feature to obtain positive impact from it.
 
-##20- Assuming that the `iPhone` users are the most likely to exceed their average usage (Tony)
+##24- Assuming that the `iPhone` users are the most likely to exceed their average usage (Tony)
 Assuming that the different devices used have different data usage/consumption according to the firmware and other factors that may, added up to the personal customer's usage, reflect an intention to exceed the usage limit.
 So let's extract a new parameter differentiating the `iPhone` users from the others:
 ```{r}
@@ -403,7 +403,7 @@ contractRefDf <- contractRefDf %>% mutate(iPhone = ifelse(grepl("iPhone", HANDSE
 ```
 Adding this feature to the predictions yields a score of `0.67081`, which is not an improvement. Hence, taking the used device into account for the predictions won't be considered for the moment.
 
-##21- Adding a feature that reflects an increasing level of usage in the 5th month (Tony)
+##31- Adding a feature that reflects an increasing level of usage in the 5th month (Tony)
 A new parameter was added depending on exceeding the average (mean) usage of the 4 months in the 5th one.
 ```{r}
 trainDf <- trainDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
@@ -489,7 +489,7 @@ labs(title = "Red 150", x = "Value Segment", y = "Frequency")
 
 It is clear that there is a strong relation between the `RATE_PLAN` and the `VALUE_SEGMENT`.
 
-##22- Cleaning the "N/A" values from the `VALUE_SEGMENT` and adding it to the predictions (Tony)
+##32- Cleaning the "N/A" values from the `VALUE_SEGMENT` and adding it to the predictions (Tony)
 Let's infer the "N/A" values of the `VALUE_SEGMENT` through its relation with the `RATE_PLAN` by replacing the `VALUE_SEGMENT` having an "N/A" value with the dominant `VALUE_SEGMENT` value corresponding to the same `RATE_PLAN`. If it's still an "N/A" value, then take the second dominant one.
 ```{r}
 dominant_value_segment <- function(rate_plan){
@@ -515,7 +515,7 @@ As we can see, almost half of the customers have a `VALUE_SEGMENT` of `Core` whi
 
 Adding the `VALUE_SEGMENT` to the predicitons now yields a score of `0.63465`, which is not an improvement.
 
-##23- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 2 (Tony)
+##33- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 2 (Tony)
 Let's try to extract the moneytary value from the `RATE_PLAN` and then include it in the predictions, in a new column/attribute `RATE_PLAN_VALUE`.
 
 First, let's remove the year value:
@@ -543,11 +543,11 @@ contractRefDf$RATE_PLAN_VALUE %>% unique %>% length
 ```
 Adding the `RATE_PLAN_VALUE` to the predicitions yields a score of `0.64236`.
 
-##24- Adding the approaches of the 2 trials of extracting features from the `RATE_PLAN` in the `contractRefDf` (Tony)
+##34- Adding the approaches of the 2 trials of extracting features from the `RATE_PLAN` in the `contractRefDf` (Tony)
 ```{r}
 contractRefDfTemp <- contractRefDf
 ```
-So building on 23 and applying what was done in 18 by updating the `RATE_PLAN` as follows:
+So building on 33 and applying what was done in 22 by updating the `RATE_PLAN` as follows:
 Discarding the year value from the `RATE_PLAN` in addition to the other numerical values such as the amount of GBs and the rate plan monetary value.
 ```{r}
 contractRefDfTemp$RATE_PLAN <- gsub("[2][0][0-9][0-9] ", "", contractRefDfTemp$RATE_PLAN)
@@ -557,8 +557,8 @@ contractRefDfTemp$RATE_PLAN <- as.factor(contractRefDfTemp$RATE_PLAN)
 ```
 So adding both the updated `RATE_PLAN` and the `RATE_PLAN_VALUE` (calculated in 23) together to the predictions, we obtain a minimum score of `0.50000`.
 
-##31- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 3 (Tony)
-Building on 23 (Trial 2), let's proceed to have a `RATE_PLAN_VALUE` for all the rate plans we have.
+##35- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 3 (Tony)
+Building on 33 (Trial 2), let's proceed to have a `RATE_PLAN_VALUE` for all the rate plans we have.
 Some of the `RATE_PLAN_VALUE` values we have have had a combination of plans that had their corresponding moneytary values, hence at this stage  for such examples, the `RATE_PLAN_VALUE` might have two moneytary values; such as '30 150'. So let's extract the numerical values out and get their mean. The single values will remain as they are and the non numerical values (the rate plans that didn't contain any moneytary value such as `Enterprise Shared Data Bundle`) will have their `RATE_PLAN_VALUE` as NAs.
 ```{r warning=FALSE}
 contractRefDf$RATE_PLAN_VALUE <- contractRefDf$RATE_PLAN_VALUE %>% sapply(function(x) x %>% strsplit(" ") %>% sapply(function(y) as.numeric(y)) %>% mean)
