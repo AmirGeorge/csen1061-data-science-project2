@@ -427,13 +427,46 @@ MLP &lt;- make_Weka_classifier(&quot;weka/classifiers/functions/MultilayerPercep
 }</code></pre>
 <p>The function <code>evaluateModel</code> uses stratified 10-fold cross-validation to evaluate the input model, and calls the <code>getEvaluation</code> function to obtain the relevant scores, then outputs them.</p>
 <pre class="r"><code>evaluateModel &lt;- function(model){
-  tenFoldModel &lt;- evaluate_Weka_classifier(model, numFolds = 10, seed = 123)
+  tenFoldModel &lt;- evaluate_Weka_classifier(model, numFolds = 5, seed = 123)
   tenFoldModel$confusionMatrix %&gt;% getEvaluation %&gt;% kable
 }</code></pre>
 </div>
 <div id="progress-tracking" class="section level1">
 <h1>Progress tracking</h1>
-<p>In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the <code>scripts</code> folder with the following naming convention: <code>Number-Implementer-Score</code>. The code chunks embedded in this section are for illustration purposes only.</p>
+<p>In the following subsections we present a brief description of several approaches we tried in order to increase the prediction score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the <code>scripts</code> folder with the following naming convention: <code>Number-Implementer-Score</code>.</p>
+<div id="decision-tree-classifier-abanoub" class="section level2">
+<h2>1- Decision Tree classifier (Abanoub)</h2>
+<p>By trying on on the Rweka’s J48 decision tree classifier on all features of the original train and test datasets, a kaggle score of <code>0.61</code> was obtained, and CV results as follows:</p>
+<pre class="r"><code>model &lt;- J48(TARGET~., data=trainDf)
+evaluateModel(model)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Accurary</th>
+<th align="right">Precision</th>
+<th align="right">Recall</th>
+<th align="right">F1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.8079473</td>
+<td align="right">0.832114</td>
+<td align="right">0.9515478</td>
+<td align="right">0.8878323</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>rm(model)</code></pre>
+</div>
+<div id="decision-tree-classifier-with-value-segment-and-rate-plan-abanoub" class="section level2">
+<h2>2- Decision tree classifier with value segment and rate plan (Abanoub)</h2>
+<p>By continuing on approach in <code>1</code> and merging with contractRef dataframe and factoring the <code>RATE_PLAN</code> and <code>VALUE_SEGMENT</code> in the predictions, a less kaggle score of <code>0.59099</code> was obtained, so this approach was neglected.</p>
+</div>
+<div id="decision-tree-classifier-with-age-amir" class="section level2">
+<h2>3- Decision tree classifier with age (Amir)</h2>
+<p>By continuing on approach in <code>1</code> and merging with contractRef dataframe and factoring the <code>AGE</code> factor in the predictions, a less kaggle score of <code>0.59184</code> was obtained, so this approach was neglected.</p>
+</div>
 <div id="decisioon-tree-with-merging-all-contract_ref.csv-columns-amir" class="section level2">
 <h2>4- Decisioon Tree with merging all <code>contract_ref.csv</code> columns (Amir)</h2>
 <p>By continuing on number <code>1</code> above (Decision Tree classifier), I merged with all columns from <code>contract_ref.csv</code>, and obtained a score of <code>0.57585</code>, which is a decrease from the original score, so this approach was neglected.</p>
@@ -441,10 +474,84 @@ MLP &lt;- make_Weka_classifier(&quot;weka/classifiers/functions/MultilayerPercep
 <div id="naive-bayes-classifier-amir" class="section level2">
 <h2>5- Naive Bayes classifier (Amir)</h2>
 <p>By trying on on the Naive Bayes classifier, a score of <code>0.56603</code> was obtained, which was less than that obtained from the Decision Tree classifier, so this approach was neglected.</p>
+<pre class="r"><code>model &lt;- NB(TARGET~., data=trainDf)
+evaluateModel(model)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Accurary</th>
+<th align="right">Precision</th>
+<th align="right">Recall</th>
+<th align="right">F1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.7864947</td>
+<td align="right">0.824841</td>
+<td align="right">0.9302515</td>
+<td align="right">0.8743808</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>rm(model)</code></pre>
 </div>
 <div id="support-vector-machine-classifier-amir" class="section level2">
 <h2>6- Support Vector Machine classifier (Amir)</h2>
 <p>By trying on on the Support Vector Machine (SMO) classifier, a score of <code>0.50000</code> was obtained, which was less than that obtained from the Decision Tree classifier, so this approach was neglected.</p>
+<pre class="r"><code>model &lt;- SMO(TARGET~., data=trainDf)
+evaluateModel(model)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Accurary</th>
+<th align="right">Precision</th>
+<th align="right">Recall</th>
+<th align="right">F1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.7987722</td>
+<td align="right">0.7987722</td>
+<td align="right">1</td>
+<td align="right">0.8881305</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>rm(model)</code></pre>
+</div>
+<div id="neural-network-classifier-abanoub" class="section level2">
+<h2>7- Neural Network classifier (Abanoub)</h2>
+<p>By trying on on the Neural Network (NN) classifier, a score of <code>0.63391</code> was obtained, which is the highest score from all classifiers, so this is the classifier that will be used from now on.</p>
+<pre class="r"><code>nnmodel &lt;- MLP(TARGET~., data=trainDf)
+evaluateModel(nnmodel)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Accurary</th>
+<th align="right">Precision</th>
+<th align="right">Recall</th>
+<th align="right">F1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.8075495</td>
+<td align="right">0.8352934</td>
+<td align="right">0.9455059</td>
+<td align="right">0.8869892</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>rm(nnmodel)</code></pre>
+</div>
+<div id="random-forest-classifier-amir" class="section level2">
+<h2>8- Random Forest classifier (Amir)</h2>
+<p>By trying on on the Random Forest (RF) classifier, a score of <code>0.60032</code> was obtained, which was less than that obtained from the Neural Network classifier, so this approach was neglected, and the NN classifier will be used from now on.</p>
+<pre class="r"><code>model &lt;- RF(TARGET~., data=trainDf)
+evaluateModel(model)
+rm(model)</code></pre>
 </div>
 <div id="neural-network-with-removing-session_count-columns-amir" class="section level2">
 <h2>9- Neural Network with removing <code>SESSION_COUNT</code> columns (Amir)</h2>
@@ -470,7 +577,7 @@ testDf &lt;- testDf[testKeeps]</code></pre>
 </div>
 <div id="neural-network-with-removing-contract_key-from-predictions-amir" class="section level2">
 <h2>12- Neural Network with removing <code>CONTRACT_KEY</code> from predictions (Amir)</h2>
-<p>I realized that the <code>CONTRACT_KEY</code> in both the train and test datasets factored as an integer in the predictions, which does not make sense at all. So, by removing it from predictions, an improved score of <code>0.65550</code> was obtained with the NN classifier. So, this approach is taken into account from now on.</p>
+<p>I realized that the <code>CONTRACT_KEY</code> in both the train and test datasets factored as an integer in the predictions, which does not make sense at all. So, by removing it from predictions, an improved score of <code>0.65550</code> was obtained with the NN classifier. So, this approach is taken into account from now on. Now for this model evaluation:</p>
 </div>
 <div id="feature-extraction-to-integrating-roaming-data-amir" class="section level2">
 <h2>13- Feature extraction to integrating roaming data (Amir)</h2>

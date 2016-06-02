@@ -155,23 +155,56 @@ evaluateModel <- function(model){
 
 
 #Progress tracking
-In the following subsections we present a brief description of several approaches we tried in order to increase the score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`. The code chunks embedded in this section are for illustration purposes only.
+In the following subsections we present a brief description of several approaches we tried in order to increase the prediction score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`.
+
+##1- Decision Tree classifier (Abanoub)
+By trying on on the Rweka's J48 decision tree classifier on all features of the original train and test datasets, a kaggle score of `0.61` was obtained, and CV results as follows:
+```{r cache=TRUE}
+model <- J48(TARGET~., data=trainDf)
+evaluateModel(model)
+rm(model)
+```
+
+##2- Decision tree classifier with value segment and rate plan (Abanoub)
+By continuing on approach in `1` and merging with contractRef dataframe and factoring the `RATE_PLAN` and `VALUE_SEGMENT` in the predictions, a less kaggle score of `0.59099` was obtained, so this approach was neglected.
+
+##3- Decision tree classifier with age (Amir)
+By continuing on approach in `1` and merging with contractRef dataframe and factoring the `AGE` factor in the predictions, a less kaggle score of `0.59184` was obtained, so this approach was neglected.
+
 
 ##4- Decisioon Tree with merging all `contract_ref.csv` columns (Amir)
 By continuing on number `1` above (Decision Tree classifier), I merged with all columns from `contract_ref.csv`, and obtained a score of `0.57585`, which is a decrease from the original score, so this approach was neglected.
 
 ##5- Naive Bayes classifier (Amir)
 By trying on on the Naive Bayes classifier, a score of `0.56603` was obtained, which was less than that obtained from the Decision Tree classifier, so this approach was neglected.
+```{r cache=TRUE}
+model <- NB(TARGET~., data=trainDf)
+evaluateModel(model)
+rm(model)
+```
 
 ##6- Support Vector Machine classifier (Amir)
 By trying on on the Support Vector Machine (SMO) classifier, a score of `0.50000` was obtained, which was less than that obtained from the Decision Tree classifier, so this approach was neglected.
+```{r cache=TRUE}
+model <- SMO(TARGET~., data=trainDf)
+evaluateModel(model)
+rm(model)
+```
 
-##8- Neural Network classifier (Abanoub)
+##7- Neural Network classifier (Abanoub)
 By trying on on the Neural Network (NN) classifier, a score of `0.63391 ` was obtained, which is the highest score from all classifiers, so this is the classifier that will be used from now on.
 ```{r cache=TRUE}
 nnmodel <- MLP(TARGET~., data=trainDf)
 evaluateModel(nnmodel)
 rm(nnmodel)
+```
+
+##8- Random Forest classifier (Amir)
+By trying on on the Random Forest (RF) classifier, a score of `0.60032` was obtained, which was less than that obtained from the Neural Network classifier, so this approach was neglected, and the NN classifier will be used from now on.
+```{r cache=TRUE, eval=FALSE}
+model <- RF(TARGET~., data=trainDf)
+evaluateModel(model)
+rm(model)
 ```
 
 ##9- Neural Network with removing `SESSION_COUNT` columns (Amir)
