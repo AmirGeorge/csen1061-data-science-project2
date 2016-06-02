@@ -405,7 +405,7 @@ Adding this feature to the predictions yields a score of `0.67081`, which is not
 
 ##31- Adding a feature that reflects an increasing level of usage in the 5th month (Tony)
 A new parameter was added depending on exceeding the average (mean) usage of the 4 months in the 5th one.
-```{r}
+```{r eval=FALSE}
 trainDf <- trainDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
 testDf <- testDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
 ```
