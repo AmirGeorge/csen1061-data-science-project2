@@ -158,12 +158,7 @@ evaluateModel <- function(model){
 In the following subsections we present a brief description of several approaches we tried in order to increase the prediction score. Each subsection denotes the person who carried out its approach, and related files to this approach (whether they are scripts, output files or workspace images) can be found in a folder inside the `scripts` folder with the following naming convention: `Number-Implementer-Score`.
 
 ##1- Decision Tree classifier (Abanoub)
-By trying on on the Rweka's J48 decision tree classifier on all features of the original train and test datasets, a kaggle score of `0.61` was obtained, and CV results as follows:
-```{r cache=TRUE}
-model <- J48(TARGET~., data=trainDf)
-evaluateModel(model)
-rm(model)
-```
+By trying on on the Rweka's J48 decision tree classifier on all features of the original train and test datasets, a kaggle score of `0.61` was obtained, so this is the approach used in the next three steps.
 
 ##2- Decision tree classifier with value segment and rate plan (Abanoub)
 By continuing on approach in `1` and merging with contractRef dataframe and factoring the `RATE_PLAN` and `VALUE_SEGMENT` in the predictions, a less kaggle score of `0.59099` was obtained, so this approach was neglected.
@@ -177,35 +172,31 @@ By continuing on number `1` above (Decision Tree classifier), I merged with all 
 
 ##5- Naive Bayes classifier (Amir)
 By trying on on the Naive Bayes classifier, a score of `0.56603` was obtained, which was less than that obtained from the Decision Tree classifier, so this approach was neglected.
-```{r cache=TRUE}
-model <- NB(TARGET~., data=trainDf)
-evaluateModel(model)
-rm(model)
-```
 
 ##6- Support Vector Machine classifier (Amir)
 By trying on on the Support Vector Machine (SMO) classifier, a score of `0.50000` was obtained, which was less than that obtained from the Decision Tree classifier, so this approach was neglected.
-```{r cache=TRUE}
+
+##7- Random Forest classifier (Amir)
+By trying on on the Random Forest (RF) classifier, a score of `0.60032` was obtained, which was less than that obtained from the Decision tree classifier, so this approach was neglected.
+
+##8- Neural Network classifier (Abanoub)
+By trying on on the Neural Network (NN) classifier, a score of `0.63391 ` was obtained, which is the highest score from all classifiers, so this is the classifier that will be used from now on.
+
+##8.5 Local CV on J48, NB, SMO, MLP (Amir)
+For each of the 4 classifiers: J48, NB, SMO & MLP, 5-fold cross validation was carried on my local machine using the above functions `getEvaluation` and `evaluateModel`. Due to the large running time, the code chunk used for evaluation is shown without running it, and a screenshot containing the results from a previous run is attached. (RF in particular had exceedingly large time that it was not included in the screenshot)
+```{r cache=TRUE, eval=FALSE}
+model <- J48(TARGET~., data=trainDf)
+evaluateModel(model)
+model <- NB(TARGET~., data=trainDf)
+evaluateModel(model)
 model <- SMO(TARGET~., data=trainDf)
 evaluateModel(model)
-rm(model)
-```
-
-##7- Neural Network classifier (Abanoub)
-By trying on on the Neural Network (NN) classifier, a score of `0.63391 ` was obtained, which is the highest score from all classifiers, so this is the classifier that will be used from now on.
-```{r cache=TRUE}
-nnmodel <- MLP(TARGET~., data=trainDf)
-evaluateModel(nnmodel)
-rm(nnmodel)
-```
-
-##8- Random Forest classifier (Amir)
-By trying on on the Random Forest (RF) classifier, a score of `0.60032` was obtained, which was less than that obtained from the Neural Network classifier, so this approach was neglected, and the NN classifier will be used from now on.
-```{r cache=TRUE, eval=FALSE}
-model <- RF(TARGET~., data=trainDf)
+model <- MLP(TARGET~., data=trainDf)
 evaluateModel(model)
 rm(model)
 ```
+![local 5-fold CV for initial features](figures/initialCV.png)
+It should be noted that the NN classifier which had the highest score on kaggle is the one with the highest precision in the 5-fold CV. Also, when studying the results of the SMO classifier, I was amused to find that the perfect recall score and the 0.79 precision are due to the fact that it recommended all target as `0`. It correctly classified all the 0 target observations as it classified all the observations as 0. Moreover, it scored a precision of 0.79 because this is the actual ration of 0 target observations in the training set. From the misleading results of the SMO classifier, we conclude that the precision metric is more valuable in our purpose, possibly due to most of the observations having a target of 0.
 
 ##9- Neural Network with removing `SESSION_COUNT` columns (Amir)
 By continuing on number `8` above (NN classifier), I removed all `SESSION_COUNT` from the prediction. The intuition behind this approach is that `USAGE` is the main concern here. However, a decreased score of `0.58118` was obtained, proving that session count indeed matters, and the approach here was neglected.
@@ -231,100 +222,103 @@ testDf <- testDf[testKeeps]
 A score of `0.62686` was obtained which is surprisingly not much less than the original score of `0.63391`. But due to it being a lesser score, the approach was neglected.
 
 ##12- Neural Network with removing `CONTRACT_KEY` from predictions (Amir)
-I realized that the `CONTRACT_KEY` in both the train and test datasets factored as an integer in the predictions, which does not make sense at all. So, by removing it from predictions, an improved score of `0.65550` was obtained with the NN classifier. So, this approach is taken into account from now on.
-Now for this model evaluation:
+I realized that the `CONTRACT_KEY` in both the train and test datasets factored as an integer in the predictions, which does not make sense at all. So, by removing it from predictions, an improved score of `0.65550` was obtained with the NN classifier. So, this approach is taken into account from now on. These are the features that are currently used to build the model:
+```{r eval=FALSE}
+model <- MLP(TARGET~X206_SESSION_COUNT + X206_USAGE + X207_SESSION_COUNT + X207_USAGE + X208_SESSION_COUNT + X208_USAGE + X209_SESSION_COUNT + X209_USAGE + X210_SESSION_COUNT + X210_USAGE
+                            , data=trainDf)
+```
 
-##13- Feature extraction to integrating roaming data (Amir)
-Buidling on the approach in `12`, I integrated with the roaming data from the `roaming_monthly.csv` file. For both the train and test datasets, 10 extra features were added as the roaming usage and roaming number of sessions for each of the 5 months. The values of these columns were extracted from `roaming_monthly.csv`.
-``` {r eval = FALSE}
-trainRoamDf <- trainDf
-trainRoamDf[,"R206_USAGE"] <- 0
-trainRoamDf[,"R206_SESSION_COUNT"] <- 0
-trainRoamDf[,"R207_USAGE"] <- 0
-trainRoamDf[,"R207_SESSION_COUNT"] <- 0
-trainRoamDf[,"R208_USAGE"] <- 0
-trainRoamDf[,"R208_SESSION_COUNT"] <- 0
-trainRoamDf[,"R209_USAGE"] <- 0
-trainRoamDf[,"R209_SESSION_COUNT"] <- 0
-trainRoamDf[,"R210_USAGE"] <- 0
-trainRoamDf[,"R210_SESSION_COUNT"] <- 0
+##13- Feature engineering to integrate roaming data (Amir)
+Buidling on the approach in `12`, I integrated with the roaming data from the `roaming_monthly.csv` file. For both the train and test datasets, 10 extra features were added as the roaming usage and roaming number of sessions for each of the 5 months. The values of these columns were extracted from the roamingDf as follows:
+``` {r}
+trainDf <- trainDf
+trainDf[,"R206_USAGE"] <- 0
+trainDf[,"R206_SESSION_COUNT"] <- 0
+trainDf[,"R207_USAGE"] <- 0
+trainDf[,"R207_SESSION_COUNT"] <- 0
+trainDf[,"R208_USAGE"] <- 0
+trainDf[,"R208_SESSION_COUNT"] <- 0
+trainDf[,"R209_USAGE"] <- 0
+trainDf[,"R209_SESSION_COUNT"] <- 0
+trainDf[,"R210_USAGE"] <- 0
+trainDf[,"R210_SESSION_COUNT"] <- 0
 
-testRoamDf <- testDf
-testRoamDf[,"R206_USAGE"] <- 0
-testRoamDf[,"R206_SESSION_COUNT"] <- 0
-testRoamDf[,"R207_USAGE"] <- 0
-testRoamDf[,"R207_SESSION_COUNT"] <- 0
-testRoamDf[,"R208_USAGE"] <- 0
-testRoamDf[,"R208_SESSION_COUNT"] <- 0
-testRoamDf[,"R209_USAGE"] <- 0
-testRoamDf[,"R209_SESSION_COUNT"] <- 0
-testRoamDf[,"R210_USAGE"] <- 0
-testRoamDf[,"R210_SESSION_COUNT"] <- 0
+testDf <- testDf
+testDf[,"R206_USAGE"] <- 0
+testDf[,"R206_SESSION_COUNT"] <- 0
+testDf[,"R207_USAGE"] <- 0
+testDf[,"R207_SESSION_COUNT"] <- 0
+testDf[,"R208_USAGE"] <- 0
+testDf[,"R208_SESSION_COUNT"] <- 0
+testDf[,"R209_USAGE"] <- 0
+testDf[,"R209_SESSION_COUNT"] <- 0
+testDf[,"R210_USAGE"] <- 0
+testDf[,"R210_SESSION_COUNT"] <- 0
 
 for (k in unique(roamingDf$CONTRACT_KEY)) {
   orig <- roamingDf[roamingDf$CONTRACT_KEY==k,]
-  if (trainRoamDf[trainRoamDf$CONTRACT_KEY==k,] %>% nrow > 0) {
+  if (trainDf[trainDf$CONTRACT_KEY==k,] %>% nrow > 0) {
     val <- orig[orig$CALL_MONTH_KEY == 206,]
     if (nrow(val) > 0) {
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R206_USAGE"] = val$USAGE
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R206_SESSION_COUNT"] = val$SESSION_COUNT
+      trainDf[trainDf$CONTRACT_KEY==k,"R206_USAGE"] = val$USAGE
+      trainDf[trainDf$CONTRACT_KEY==k,"R206_SESSION_COUNT"] = val$SESSION_COUNT
     }
     val <- orig[orig$CALL_MONTH_KEY == 207,]
     if (nrow(val) > 0) {
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R207_USAGE"] = val$USAGE
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R207_SESSION_COUNT"] = val$SESSION_COUNT
+      trainDf[trainDf$CONTRACT_KEY==k,"R207_USAGE"] = val$USAGE
+      trainDf[trainDf$CONTRACT_KEY==k,"R207_SESSION_COUNT"] = val$SESSION_COUNT
     }
     val <- orig[orig$CALL_MONTH_KEY == 208,]
     if (nrow(val) > 0) {
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R208_USAGE"] = val$USAGE
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R208_SESSION_COUNT"] = val$SESSION_COUNT
+      trainDf[trainDf$CONTRACT_KEY==k,"R208_USAGE"] = val$USAGE
+      trainDf[trainDf$CONTRACT_KEY==k,"R208_SESSION_COUNT"] = val$SESSION_COUNT
     }
     val <- val[val$CALL_MONTH_KEY == 209,]
     if (nrow(val) > 0) {
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R209_USAGE"] = val$USAGE
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R209_SESSION_COUNT"] = val$SESSION_COUNT
+      trainDf[trainDf$CONTRACT_KEY==k,"R209_USAGE"] = val$USAGE
+      trainDf[trainDf$CONTRACT_KEY==k,"R209_SESSION_COUNT"] = val$SESSION_COUNT
     }
     val <- orig[orig$CALL_MONTH_KEY == 210,]
     if (nrow(val) > 0) {
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R210_USAGE"] = val$USAGE
-      trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R210_SESSION_COUNT"] = val$SESSION_COUNT
+      trainDf[trainDf$CONTRACT_KEY==k,"R210_USAGE"] = val$USAGE
+      trainDf[trainDf$CONTRACT_KEY==k,"R210_SESSION_COUNT"] = val$SESSION_COUNT
     }
   }
   else {
     val <- orig[orig$CALL_MONTH_KEY == 206,]
     if (nrow(val) > 0) {
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R206_USAGE"] = val$USAGE
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R206_SESSION_COUNT"] = val$SESSION_COUNT
+      testDf[testDf$CONTRACT_KEY==k,"R206_USAGE"] = val$USAGE
+      testDf[testDf$CONTRACT_KEY==k,"R206_SESSION_COUNT"] = val$SESSION_COUNT
     }
     val <- orig[orig$CALL_MONTH_KEY == 207,]
     if (nrow(val) > 0) {
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R207_USAGE"] = val$USAGE
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R207_SESSION_COUNT"] = val$SESSION_COUNT
+      testDf[testDf$CONTRACT_KEY==k,"R207_USAGE"] = val$USAGE
+      testDf[testDf$CONTRACT_KEY==k,"R207_SESSION_COUNT"] = val$SESSION_COUNT
     }
     val <- orig[orig$CALL_MONTH_KEY == 208,]
     if (nrow(val) > 0) {
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R208_USAGE"] = val$USAGE
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R208_SESSION_COUNT"] = val$SESSION_COUNT
+      testDf[testDf$CONTRACT_KEY==k,"R208_USAGE"] = val$USAGE
+      testDf[testDf$CONTRACT_KEY==k,"R208_SESSION_COUNT"] = val$SESSION_COUNT
     }
     val <- val[val$CALL_MONTH_KEY == 209,]
     if (nrow(val) > 0) {
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R209_USAGE"] = val$USAGE
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R209_SESSION_COUNT"] = val$SESSION_COUNT
+      testDf[testDf$CONTRACT_KEY==k,"R209_USAGE"] = val$USAGE
+      testDf[testDf$CONTRACT_KEY==k,"R209_SESSION_COUNT"] = val$SESSION_COUNT
     }
     val <- orig[orig$CALL_MONTH_KEY == 210,]
     if (nrow(val) > 0) {
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R210_USAGE"] = val$USAGE
-      testRoamDf[testRoamDf$CONTRACT_KEY==k,"R210_SESSION_COUNT"] = val$SESSION_COUNT
+      testDf[testDf$CONTRACT_KEY==k,"R210_USAGE"] = val$USAGE
+      testDf[testDf$CONTRACT_KEY==k,"R210_SESSION_COUNT"] = val$SESSION_COUNT
     }
   }
 }
 ```
-By factoring them into the prediction, an improved score of `0.67939` was reached. So, this approach is implemented from now on.
+By factoring the 10 roaming features into the prediction as well, an improved score of `0.67939` was reached. So, these features are taken into consideration from now on.
 
 ##14- Adjustment to roaming data (Amir)
 Buidling on the approach in `13`, I implemented a small adjustment by subtracting the newly added monthly roaming data from original total mothly data, so that the original usage and session count columns would now describe local data only. 
-```{r eval=FALSE}
-trainRoamDf <- trainRoamDf %>% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
+```{r}
+trainDf <- trainDf %>% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
                                       X206_USAGE = X206_USAGE - R206_USAGE,
                                       X207_SESSION_COUNT = X207_SESSION_COUNT - R207_SESSION_COUNT,
                                       X207_USAGE = X207_USAGE - R207_USAGE,
@@ -335,7 +329,7 @@ trainRoamDf <- trainRoamDf %>% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - 
                                       X210_SESSION_COUNT = X210_SESSION_COUNT - R210_SESSION_COUNT,
                                       X210_USAGE = X210_USAGE - R210_USAGE)
 
-testRoamDf <- testRoamDf %>% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
+testDf <- testDf %>% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
                                       X206_USAGE = X206_USAGE - R206_USAGE,
                                       X207_SESSION_COUNT = X207_SESSION_COUNT - R207_SESSION_COUNT,
                                       X207_USAGE = X207_USAGE - R207_USAGE,
