@@ -372,10 +372,10 @@ We also tried to ensmable low-correlated submissions like scripts 36 and 26 and 
 
 
 
-#CrossValidation between different models
+#CrossValidation between different models(Mimi)
 We did the cross validation on Microsoft Azure beacuse our local machinse could'nt stand this big laod.
 
-Here is the cross validation for the first train columns.
+Cross validation for the first train columns.
 
 ```{r echo=FALSE}
 crossValidation <- read.csv('CrossValidationsDataFramesAzure/initialCrossValidation.csv')
@@ -387,6 +387,12 @@ crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGemi
 ```{r}
 summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
 summary %>% kable
+NN_percisions <- c(summary[2,3]$precision)
+DF_precisions <- c(summary[3,3]$precision)
+SVM_precisions <- c(summary[7,3]$precision)
+NN_acc <- c(summary[2,2]$accuracy)
+DF_acc <- c(summary[3,2]$accuracy)
+SVM_acc <- c(summary[7,2]$accuracy)
 
 ggplot(summary, aes(Model)) +
   geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
@@ -398,10 +404,8 @@ ggplot(summary, aes(Model)) +
   #scale_shape_discrete(solid=T, legend=F) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
-Reasnong blah blah blah
 
-
-Here is the cross validation for the model with the roaming columns added - script blah
+Cross validation for the model with the roaming columns added - script `13`
 
 ```{r echo=FALSE}
 crossValidation <- read.csv('CrossValidationsDataFramesAzure/roamingCrossValidation.csv')
@@ -413,6 +417,13 @@ crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGemi
 ```{r}
 summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
 summary %>% kable
+NN_percisions <- c(NN_percisions,summary[2,3]$precision)
+DF_precisions <- c(DF_precisions,summary[3,3]$precision)
+SVM_precisions <- c(SVM_precisions,summary[7,3]$precision)
+NN_acc <- c(NN_acc,summary[2,2]$accuracy)
+DF_acc <- c(DF_acc,summary[3,2]$accuracy)
+SVM_acc <- c(SVM_acc,summary[7,2]$accuracy)
+
 
 ggplot(summary, aes(Model)) +
   geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
@@ -424,12 +435,11 @@ ggplot(summary, aes(Model)) +
   #scale_shape_discrete(solid=T, legend=F) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
-Reasnong blah blah blah
 
-Here is the cross validation for the model with the daily columns added - Script 25
+Cross validation for the model with the daily columns added - Script 25
 
 ```{r echo=FALSE}
-crossValidation <- read.csv('CrossValidationsDataFramesAzure/dail1CrossValidation.csv')
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/daily1CrossValidation.csv')
 crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
 crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
 crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
@@ -438,6 +448,12 @@ crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGemi
 ```{r}
 summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
 summary %>% kable
+NN_percisions <- c(NN_percisions,summary[2,3]$precision)
+DF_precisions <- c(DF_precisions,summary[3,3]$precision)
+SVM_precisions <- c(SVM_precisions,summary[7,3]$precision)
+NN_acc <- c(NN_acc,summary[2,2]$accuracy)
+DF_acc <- c(DF_acc,summary[3,2]$accuracy)
+SVM_acc <- c(SVM_acc,summary[7,2]$accuracy)
 
 ggplot(summary, aes(Model)) +
   geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
@@ -449,14 +465,11 @@ ggplot(summary, aes(Model)) +
   #scale_shape_discrete(solid=T, legend=F) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
-Reasnong blah blah blah
 
-
-
-Here is the cross validation for the model with the daily columns added - Script 25
+Here is the cross validation for the model with the daily columns added - Script 26
 
 ```{r echo=FALSE}
-crossValidation <- read.csv('CrossValidationsDataFramesAzure/daily2CrossValidationUpdated.csv')
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/daily2CrossValidation.csv')
 crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
 crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
 crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
@@ -465,6 +478,12 @@ crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGemi
 ```{r}
 summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
 summary %>% kable
+NN_percisions <- c(NN_percisions,summary[2,3]$precision)
+DF_precisions <- c(DF_precisions,summary[3,3]$precision)
+SVM_precisions <- c(SVM_precisions,summary[7,3]$precision)
+NN_acc <- c(NN_acc,summary[2,2]$accuracy)
+DF_acc <- c(DF_acc,summary[3,2]$accuracy)
+SVM_acc <- c(SVM_acc,summary[7,2]$accuracy)
 
 ggplot(summary, aes(Model)) +
   geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
@@ -476,9 +495,33 @@ ggplot(summary, aes(Model)) +
   #scale_shape_discrete(solid=T, legend=F) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
-Reasnong blah blah blah
+
+Note that Neural Networks has the most accuracy. However we need to check the precision to get a better indicator of the classifier we choose.
+
+```{r fig.width=10}
+a <- c("1.initial","2.roaming","3.daily agg","4.weekdays/weekends")
+df <- data.frame(updates = a, NN = NN_acc, DF =  DF_acc, SVM = SVM_acc)
+ggplot(df, aes(updates)) +
+  geom_line(aes(y = NN, colour = "Neural Networks"), size=1.5, group = 1) + 
+  geom_line(aes(y = DF, colour = "Decision Forest"), size=1.5, group = 1) + 
+  geom_line(aes(y = SVM, colour = "SVM"), size=1.5, group = 1) + 
+  xlab("Features Update")+ylab("Accuracy")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","#00FF00"))
+```
+We can see that the precision of Neural Networks increases as we add our new features ad addition it achievs the best best precision among the other classifiers.
+
+```{r fig.width=10}
+df <- data.frame(updates = a, NN = NN_percisions, DF =  DF_precisions, SVM = SVM_precisions)
+ggplot(df, aes(updates)) +
+  geom_line(aes(y = NN, colour = "Neural Networks"), size=1.5, group = 1) + 
+  geom_line(aes(y = DF, colour = "Decision Forest"), size=1.5, group = 1) + 
+  geom_line(aes(y = SVM, colour = "SVM"), size=1.5, group = 1) + 
+  xlab("Features Update")+ylab("Precision")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","#00FF00"))
+```
 
 
+#Evaluating our model(Mimi)
 
 
 
