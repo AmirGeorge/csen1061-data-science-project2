@@ -1047,9 +1047,9 @@ When choosing high-correlated submissions the score changed slightly (which made
 
 We also tried to ensmeble low-correlated submissions of the two approaches in `26` and `36` and and this gave a decreased score of `0.68192`.
 
-##-- Local CV on our final features (Amir)
-To recap our previous work that was taken into consideration, we have added many features that have increased our kaggle score, and temporarily added some features that unfortunately did not and ultimately removed them. In some of the intermediate steps, we have relied on the kaggle scoring to determine the usefulness of features, as performing cross validation in every minor step was time-consuming and unpractical.
-Using the chosen final features, I have run a one time 5-fold cross validation on my local machine, using these features and 4 diferrent models: 
+#-- Local CV on our final features (Amir)
+To recap our previous work, we have added many features that have increased our kaggle score, and temporarily added some features that unfortunately did not and ultimately removed them. In some of the intermediate steps, we have relied on the kaggle scoring to determine the usefulness of features, as performing cross validation in every minor step was time-consuming and unpractical. Working throughout a long period of time permiited us to make use of a large number of submissions, so CV was done in some of the steps only.
+Using the chosen final features, I have run a one time 5-fold cross validation on my local machine, using these features and 4 diferrent classifiers: 
 
 ![Results of one-time 5-fold CV on MLP classifier trained on final features](figures/MLP-final.png)
 
@@ -1058,3 +1058,163 @@ Using the chosen final features, I have run a one time 5-fold cross validation o
 ![Results of one-time 5-fold CV on NB classifier trained on final features](figures/NB-final.png)
 
 ![Results of one-time 5-fold CV on SMO classifier trained on final features](figures/SMO-final.png)
+
+#-- CrossValidation between different models on Azure (Mimi)
+At different steps, we carried on cross validation using our chosen features on some models on Microsoft Azure. It was unpractical to fully rely on local CV at each minor modification due to the exceedingly long computational times. Below is a demonstration of Azure CV results using 4 sets of features as described
+
+## Cross validation for the first train columns:
+This is using all the original features from the original train dataset and before integrating with roaming and daily data).
+
+```{r echo=FALSE}
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/initialCrossValidation.csv')
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
+```
+
+```{r}
+summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
+summary %>% kable
+NN_percisions <- c(summary[2,3]$precision)
+DF_precisions <- c(summary[3,3]$precision)
+SVM_precisions <- c(summary[7,3]$precision)
+NN_acc <- c(summary[2,2]$accuracy)
+DF_acc <- c(summary[3,2]$accuracy)
+SVM_acc <- c(summary[7,2]$accuracy)
+
+ggplot(summary, aes(Model)) +
+  geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
+  geom_point(aes(y = recall, colour = 'Recall'), size= 1.5, group = 1, shape=2)+ 
+  geom_point(aes(y = accuracy, colour = 'Accuracy'), size= 1.5, group = 1, shape=3)+ 
+  geom_point(aes(y = F.Score, colour = 'Score'), size= 1.5, group = 1, shape=4)+ 
+  xlab("Model Name")+ylab("Results")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","GREEN","BLUE"))+
+  #scale_shape_discrete(solid=T, legend=F) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Cross validation for the model after extracing the roaming features
+As illustrated in script & step `13`.
+
+```{r echo=FALSE}
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/roamingCrossValidation.csv')
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
+```
+
+```{r}
+summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
+summary %>% kable
+NN_percisions <- c(NN_percisions,summary[2,3]$precision)
+DF_precisions <- c(DF_precisions,summary[3,3]$precision)
+SVM_precisions <- c(SVM_precisions,summary[7,3]$precision)
+NN_acc <- c(NN_acc,summary[2,2]$accuracy)
+DF_acc <- c(DF_acc,summary[3,2]$accuracy)
+SVM_acc <- c(SVM_acc,summary[7,2]$accuracy)
+
+
+ggplot(summary, aes(Model)) +
+  geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
+  geom_point(aes(y = recall, colour = 'Recall'), size= 1.5, group = 1, shape=2)+ 
+  geom_point(aes(y = accuracy, colour = 'Accuracy'), size= 1.5, group = 1, shape=3)+ 
+  geom_point(aes(y = F.Score, colour = 'Score'), size= 1.5, group = 1, shape=4)+ 
+  xlab("Model Name")+ylab("Results")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","GREEN","BLUE"))+
+  #scale_shape_discrete(solid=T, legend=F) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Cross validation for the model after extracting the daily features.: (Script & Step 25)
+
+```{r echo=FALSE}
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/daily1CrossValidation.csv')
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
+```
+
+```{r}
+summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
+summary %>% kable
+NN_percisions <- c(NN_percisions,summary[2,3]$precision)
+DF_precisions <- c(DF_precisions,summary[3,3]$precision)
+SVM_precisions <- c(SVM_precisions,summary[7,3]$precision)
+NN_acc <- c(NN_acc,summary[2,2]$accuracy)
+DF_acc <- c(DF_acc,summary[3,2]$accuracy)
+SVM_acc <- c(SVM_acc,summary[7,2]$accuracy)
+
+ggplot(summary, aes(Model)) +
+  geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
+  geom_point(aes(y = recall, colour = 'Recall'), size= 1.5, group = 1, shape=2)+ 
+  geom_point(aes(y = accuracy, colour = 'Accuracy'), size= 1.5, group = 1, shape=3)+ 
+  geom_point(aes(y = F.Score, colour = 'Score'), size= 1.5, group = 1, shape=4)+ 
+  xlab("Model Name")+ylab("Results")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","GREEN","BLUE"))+
+  #scale_shape_discrete(solid=T, legend=F) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Cross validation for the model after adding weekday and weekend features
+As illustrated in step and script `26`.
+
+```{r echo=FALSE}
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/daily2CrossValidation.csv')
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
+```
+
+```{r}
+summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
+summary %>% kable
+NN_percisions <- c(NN_percisions,summary[2,3]$precision)
+DF_precisions <- c(DF_precisions,summary[3,3]$precision)
+SVM_precisions <- c(SVM_precisions,summary[7,3]$precision)
+NN_acc <- c(NN_acc,summary[2,2]$accuracy)
+DF_acc <- c(DF_acc,summary[3,2]$accuracy)
+SVM_acc <- c(SVM_acc,summary[7,2]$accuracy)
+
+ggplot(summary, aes(Model)) +
+  geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
+  geom_point(aes(y = recall, colour = 'Recall'), size= 1.5, group = 1, shape=2)+ 
+  geom_point(aes(y = accuracy, colour = 'Accuracy'), size= 1.5, group = 1, shape=3)+ 
+  geom_point(aes(y = F.Score, colour = 'Score'), size= 1.5, group = 1, shape=4)+ 
+  xlab("Model Name")+ylab("Results")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","GREEN","BLUE"))+
+  #scale_shape_discrete(solid=T, legend=F) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Note that the Neural Network has the most accuracy. However we need to check the precision to get a better indicator of the better classifier.
+
+```{r fig.width=10}
+a <- c("1.initial","2.roaming","3.daily agg","4.weekdays/weekends")
+df <- data.frame(updates = a, NN = NN_acc, DF =  DF_acc, SVM = SVM_acc)
+ggplot(df, aes(updates)) +
+  geom_line(aes(y = NN, colour = "Neural Networks"), size=1.5, group = 1) + 
+  geom_line(aes(y = DF, colour = "Decision Forest"), size=1.5, group = 1) + 
+  geom_line(aes(y = SVM, colour = "SVM"), size=1.5, group = 1) + 
+  xlab("Features Update")+ylab("Accuracy")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","#00FF00"))
+```
+We can see that the precision of Neural Networks increases as we add our new features and adding them achieves the best increase in precision among the other classifiers.
+
+```{r fig.width=10}
+df <- data.frame(updates = a, NN = NN_percisions, DF =  DF_precisions, SVM = SVM_precisions)
+ggplot(df, aes(updates)) +
+  geom_line(aes(y = NN, colour = "Neural Networks"), size=1.5, group = 1) + 
+  geom_line(aes(y = DF, colour = "Decision Forest"), size=1.5, group = 1) + 
+  geom_line(aes(y = SVM, colour = "SVM"), size=1.5, group = 1) + 
+  xlab("Features Update")+ylab("Precision")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","#00FF00"))
+```
+
+#Notes on model parameter selection in Azure
+
+For Random forest classifiers we set the the number of tree in the range of (64-128) according to this [article](https://www.researchgate.net/publication/230766603_How_Many_Trees_in_a_Random_Forest) . The goal from this was to balance between the performance of results and the computational time in training.
+
+In general, when we used Azure classsifers We used range parameters, to give the classifier a better chance at calculating the optimal parameters.
+
+#Evaluating our model(Mimi)
+
