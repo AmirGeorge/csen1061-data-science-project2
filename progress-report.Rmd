@@ -1071,6 +1071,9 @@ testDf$RATE_PLAN_VALUE[is.na(testDf$RATE_PLAN_VALUE)] <- dominant_rate_plan_valu
 ```
 Adding the calculated `RATE_PLAN_VALUE` to the predictions yields a score of `0.65238`.
 
+##-- MLP with different model parameters (Mimi & Amir)
+The MLP that scored the highest score so far `0.70333` (in step 26) had a learning rate of `0.3`. When building the model with a lesser learning rate of `0.2`, a decreased score of `0.70168` was obtained. The reason for this could be that the lesser learning rate caused the network to reach a local minimum when training, hence the neural network was not trained in the optimal way.
+
 ##-- Ensemble Kaggle Submissions (Mimi)
 We tried to improve our score by ensembling some of our best submissions. We calculted the correlation between submissions using this pythong script which is viewable in the Kaggle-Ensemble-Guide repo [correlations.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/correlations.py).
 When choosing high-correlated submissions the score changed slightly (which made sense). An example of that is that the score changed from `0.70333` to `0.70359` (best score so far) when we ensembled the submissions 25 & 26 with weights 1 and 3 respectively using the voting approach described here [kaggle_vote.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/kaggle_vote.py).

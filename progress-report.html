@@ -1561,6 +1561,10 @@ testDf$RATE_PLAN_VALUE[is.na(testDf$RATE_PLAN_VALUE)] &lt;- dominant_rate_plan_v
 <p>Adding the calculated <code>RATE_PLAN_VALUE</code> to the predictions yields a score of <code>0.65238</code>.</p>
 </div>
 </div>
+<div id="mlp-with-different-model-parameters-mimi-amir" class="section level2">
+<h2>– MLP with different model parameters (Mimi &amp; Amir)</h2>
+<p>The MLP that scored the highest score so far <code>0.70333</code> (in step 26) had a learning rate of <code>0.3</code>. When building the model with a lesser learning rate of <code>0.2</code>, a decreased score of <code>0.70168</code> was obtained. The reason for this could be that the lesser learning rate caused the network to reach a local minimum when training, hence the neural network was not trained in the optimal way.</p>
+</div>
 <div id="ensemble-kaggle-submissions-mimi" class="section level2">
 <h2>– Ensemble Kaggle Submissions (Mimi)</h2>
 <p>We tried to improve our score by ensembling some of our best submissions. We calculted the correlation between submissions using this pythong script which is viewable in the Kaggle-Ensemble-Guide repo <a href="https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/correlations.py">correlations.py</a>. When choosing high-correlated submissions the score changed slightly (which made sense). An example of that is that the score changed from <code>0.70333</code> to <code>0.70359</code> (best score so far) when we ensembled the submissions 25 &amp; 26 with weights 1 and 3 respectively using the voting approach described here <a href="https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/kaggle_vote.py">kaggle_vote.py</a>.</p>
