@@ -144,8 +144,6 @@
   train.df <- train.df %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, always_increasing = (diff1 > 0 & diff2 > 0 & diff3 >0 & diff4 > 0), above_mid = (min(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE) > mid))
   test.df <- test.df %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, always_increasing = (diff1 > 0 & diff2 > 0 & diff3 >0 & diff4 > 0), above_mid = (min(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE) > mid))
 
-
-##Bug
   for(name in weekdays){
       # Local Data
       col_name_usage <- paste('local_',name,'_usage',sep='')
@@ -275,7 +273,7 @@
                      local_Thursday_usage+local_Saturday_usage+local_Sunday_usage+local_Monday_usage+local_Tuesday_usage+local_Wednesday_usage+local_Friday_usage+
                      roaming_Thursday_usage+roaming_Saturday_usage+roaming_Sunday_usage+roaming_Monday_usage+roaming_Tuesday_usage+roaming_Wednesday_usage+roaming_Friday_usage+
                      local_Thursday_sessions_count+local_Saturday_sessions_count+local_Sunday_sessions_count+local_Monday_sessions_count+local_Tuesday_sessions_count+local_Wednesday_sessions_count+local_Friday_sessions_count+
-                     roaming_Thursday_sessions_count+roaming_Saturday_sessions_count+roaming_Sunday_sessions_count+roaming_Monday_sessions_count+roaming_Tuesday_sessions_count+roaming_Wednesday_sessions_count+roaming_Friday_sessions_count
+                     roaming_Thursday_sessions_count+roaming_Saturday_sessions_count+roaming_Sunday_sessions_count+roaming_Monday_sessions_count+roaming_Tuesday_sessions_count+roaming_Wednesday_sessions_count+roaming_Friday_sessions_count+mean_usage+mean_sessions_count+median_usage+median_sessions_count+sd_usage+sd_sessions_count
                      + weekday_usage+ weekend_usage+ weekday_sessions_count+ weekend_sessions_count
                                 , data=train.df)
  

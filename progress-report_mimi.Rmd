@@ -19,7 +19,7 @@ trainDf <- read.csv('data/train.csv')
 testDf <- read.csv('data/test.csv')
 contractRefDf <- read.csv('data/contract_ref.csv')
 calendarRefDf <- read.csv('data/calendar_ref.csv')
-dailyAggDf <- read.csv('data/daily_aggregate.csv', nrows = 2000)
+dailyAggDf <- read.csv('data/daily_aggregate.csv', nrows = 1000)
 roamingDf <- read.csv('data/roaming_monthly.csv')
 ```
 ```{r}
@@ -28,7 +28,6 @@ RF <- make_Weka_classifier("weka/classifiers/trees/RandomForest")
 NB <- make_Weka_classifier("weka/classifiers/bayes/NaiveBayes")
 MLP <- make_Weka_classifier("weka/classifiers/functions/MultilayerPerceptron")
 ```
-
 
 
 Examine the graph for sample of users' usage where the target is 1 and 0
@@ -57,7 +56,6 @@ From the figure below we can have two observaitions:
   2. The value is 1 for the users who used big usages in the last 5 months(roughly greater than 2500MB).
   
 ```{r}
-
 ggplot(df, aes(monthly_names)) + 
   geom_line(aes(y = avgs_monthly_usages_traget_1, colour='1'), size=1.5, group = 1) + 
   geom_line(aes(y = avgs_monthly_usages_target_0, colour= '0'), size= 1.5, group = 1) + 
@@ -73,18 +71,19 @@ ggplot(df, aes(monthly_names)) +
   scale_colour_manual(values=c("#F57670","#C680FC"))
 
 trainDf <- trainDf %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, always_increasing = (diff1 > 0 & diff2 > 0 & diff3 >0 & diff4 > 0))
-
-#mx <- trainDf %>% max(X206_USAGE,X207_USAGE)
-#mid <- 2200
-#trainDf <- trainDf %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, always_increasing = (diff1 > 0 & diff2 > 0 & diff3 >0 & diff4 > 0), above_mid = (min(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE) > mid))
 ```
 
 
-##Explore Daily Agg. Data
+##Explore Daily Agg. Data(Mimi)
 
 ```{r}
 dailyAggDf %>% dim
-summary(dailyAggDf)
+summary(dailyAggDf) %>% kable
+```
+
+The unique number of cells
+```{r}
+dailyAggDf$CELL_KEY %>% unique %>% length
 ```
 
 The number of users we have their data
@@ -113,16 +112,127 @@ We found that total consumption is measured by bytes so we convert it to MB
 daily_calendar_merge$TOTAL_CONSUMPTION <- daily_calendar_merge$TOTAL_CONSUMPTION/1024/1024
 ```
 
-For each user in the daily agg table we calculate for each day in the dayweeks, the amount of usage and sessions whether local or roaming in that day. But we don't have the data for all the users so, we we calculate their usage as the total over 7 (the seven days) equally.
+###25- For each user in the daily agg table we calculate for each day, the amount of usage and sessions whether local or roaming in that day. But we don't have the data for all the users so, we calculate their usage or sesions count as the total over 7 (the seven days) equally.(Mimi)
 
-```{r}
-  weekdays <- c('Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday')
-  train.df <- trainDf
-  test.df  <- testDf
+```{r cache=TRUE}
+  trainDf$TARGET <- as.factor(trainDf$TARGET)
+  colnames(dailyAggDf)[2] <- "DATE_KEY"
   a <- merge(dailyAggDf, calendarRefDf, BY = "DATE_KEY")
   a$TOTAL_CONSUMPTION <- a$TOTAL_CONSUMPTION/1024/1024
-  
-  for(name in weekdays){
+
+  trainRoamDf <- trainDf
+  testRoamDf <- testDf
+
+  trainRoamDf[,"R206_USAGE"] <- 0
+  trainRoamDf[,"R206_SESSION_COUNT"] <- 0
+  trainRoamDf[,"R207_USAGE"] <- 0
+  trainRoamDf[,"R207_SESSION_COUNT"] <- 0
+  trainRoamDf[,"R208_USAGE"] <- 0
+  trainRoamDf[,"R208_SESSION_COUNT"] <- 0
+  trainRoamDf[,"R209_USAGE"] <- 0
+  trainRoamDf[,"R209_SESSION_COUNT"] <- 0
+  trainRoamDf[,"R210_USAGE"] <- 0
+  trainRoamDf[,"R210_SESSION_COUNT"] <- 0
+
+
+  testRoamDf[,"R206_USAGE"] <- 0
+  testRoamDf[,"R206_SESSION_COUNT"] <- 0
+  testRoamDf[,"R207_USAGE"] <- 0
+  testRoamDf[,"R207_SESSION_COUNT"] <- 0
+  testRoamDf[,"R208_USAGE"] <- 0
+  testRoamDf[,"R208_SESSION_COUNT"] <- 0
+  testRoamDf[,"R209_USAGE"] <- 0
+  testRoamDf[,"R209_SESSION_COUNT"] <- 0
+  testRoamDf[,"R210_USAGE"] <- 0
+  testRoamDf[,"R210_SESSION_COUNT"] <- 0
+
+  for (k in unique(roamingDf$CONTRACT_KEY)) {
+    orig <- roamingDf[roamingDf$CONTRACT_KEY==k,]
+    if (trainRoamDf[trainRoamDf$CONTRACT_KEY==k,] %>% nrow > 0) {
+      val <- orig[orig$CALL_MONTH_KEY == 206,]
+      if (nrow(val) > 0) {
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R206_USAGE"] = val$USAGE
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R206_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+      val <- orig[orig$CALL_MONTH_KEY == 207,]
+      if (nrow(val) > 0) {
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R207_USAGE"] = val$USAGE
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R207_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+      val <- orig[orig$CALL_MONTH_KEY == 208,]
+      if (nrow(val) > 0) {
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R208_USAGE"] = val$USAGE
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R208_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+      val <- val[val$CALL_MONTH_KEY == 209,]
+      if (nrow(val) > 0) {
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R209_USAGE"] = val$USAGE
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R209_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+      val <- orig[orig$CALL_MONTH_KEY == 210,]
+      if (nrow(val) > 0) {
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R210_USAGE"] = val$USAGE
+        trainRoamDf[trainRoamDf$CONTRACT_KEY==k,"R210_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+    }
+    else {
+      val <- orig[orig$CALL_MONTH_KEY == 206,]
+      if (nrow(val) > 0) {
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R206_USAGE"] = val$USAGE
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R206_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+      val <- orig[orig$CALL_MONTH_KEY == 207,]
+      if (nrow(val) > 0) {
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R207_USAGE"] = val$USAGE
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R207_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+      val <- orig[orig$CALL_MONTH_KEY == 208,]
+      if (nrow(val) > 0) {
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R208_USAGE"] = val$USAGE
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R208_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+      val <- val[val$CALL_MONTH_KEY == 209,]
+      if (nrow(val) > 0) {
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R209_USAGE"] = val$USAGE
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R209_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+      val <- orig[orig$CALL_MONTH_KEY == 210,]
+      if (nrow(val) > 0) {
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R210_USAGE"] = val$USAGE
+        testRoamDf[testRoamDf$CONTRACT_KEY==k,"R210_SESSION_COUNT"] = val$SESSION_COUNT
+      }
+    }
+  }
+
+  trainRoamDf <- trainRoamDf %>% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
+                                        X206_USAGE = X206_USAGE - R206_USAGE,
+                                        X207_SESSION_COUNT = X207_SESSION_COUNT - R207_SESSION_COUNT,
+                                        X207_USAGE = X207_USAGE - R207_USAGE,
+                                        X208_SESSION_COUNT = X208_SESSION_COUNT - R208_SESSION_COUNT,
+                                        X208_USAGE = X208_USAGE - R208_USAGE,
+                                        X209_SESSION_COUNT = X209_SESSION_COUNT - R209_SESSION_COUNT,
+                                        X209_USAGE = X209_USAGE - R209_USAGE,
+                                        X210_SESSION_COUNT = X210_SESSION_COUNT - R210_SESSION_COUNT,
+                                        X210_USAGE = X210_USAGE - R210_USAGE)
+
+  testRoamDf <- testRoamDf %>% mutate(X206_SESSION_COUNT = X206_SESSION_COUNT - R206_SESSION_COUNT,
+                                        X206_USAGE = X206_USAGE - R206_USAGE,
+                                        X207_SESSION_COUNT = X207_SESSION_COUNT - R207_SESSION_COUNT,
+                                        X207_USAGE = X207_USAGE - R207_USAGE,
+                                        X208_SESSION_COUNT = X208_SESSION_COUNT - R208_SESSION_COUNT,
+                                        X208_USAGE = X208_USAGE - R208_USAGE,
+                                        X209_SESSION_COUNT = X209_SESSION_COUNT - R209_SESSION_COUNT,
+                                        X209_USAGE = X209_USAGE - R209_USAGE,
+                                        X210_SESSION_COUNT = X210_SESSION_COUNT - R210_SESSION_COUNT,
+                                        X210_USAGE = X210_USAGE - R210_USAGE)
+
+  monthly_usage_columns <- c('X206_USAGE','X207_USAGE','X208_USAGE','X209_USAGE','X210_USAGE')
+  weekdays <- c('Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday')
+
+  train.df <- trainRoamDf
+  test.df  <- testRoamDf
+
+    for(name in weekdays){
       # Local Data
       col_name_usage <- paste('local_',name,'_usage',sep='')
       col_name_sessions_count <- paste('local_',name,'_sessions_count',sep='')
@@ -134,7 +244,7 @@ For each user in the daily agg table we calculate for each day in the dayweeks, 
       train.df <- merge(train.df,local, BY = "CONTRACT_KEY",all.x = T)
       test.df <- merge(test.df,local, BY = "CONTRACT_KEY",all.x = T)
       
-      ##Remove Na's
+      ##Remove Na's 
       #local usage
       exp <- paste("train.df <- train.df %>% mutate(",col_name_usage,"= ifelse(is.na(",col_name_usage,"),X210_USAGE/7,",col_name_usage,"))", sep= "")
       eval(parse(text = exp))
@@ -181,20 +291,21 @@ For each user in the daily agg table we calculate for each day in the dayweeks, 
       eval(parse(text = exp))
   }
 ```
-With adding the above features to the model, the score improved to 0.69884.
 
-Also we added four features to describe the data more precisy. we defined weekday_usage which is the sum of usage and sessions count spent on the weekdays (Sunday,...Friday). and the same for the weekend
 
-```{r}
-## Train 
+###26- From the previous columns now we can caluclate more features like week_day_usage, week_end_usage and the same for the sessions count(Mimi). After that the score improved to 
+0.70333 (Mimi)
+
+```{r cache=TRUE}
+  ## Train 
   train.df <- train.df %>% rowwise() %>% mutate(
     weekday_usage = sum(c(local_Sunday_usage,roaming_Sunday_usage,local_Monday_usage,roaming_Monday_usage,local_Tuesday_usage,roaming_Tuesday_usage,local_Wednesday_usage,roaming_Wednesday_usage,local_Thursday_usage,roaming_Thursday_usage))
     ,
     weekday_sessions_count = sum(c(local_Sunday_sessions_count,roaming_Sunday_sessions_count,local_Monday_sessions_count,roaming_Monday_sessions_count,local_Tuesday_sessions_count,roaming_Tuesday_sessions_count,local_Wednesday_sessions_count,roaming_Wednesday_sessions_count,local_Thursday_sessions_count,roaming_Thursday_sessions_count))
     ,
-    weekend_usage = sum(c(local_Friday_usage,roaming_Saturday_usage,local_Saturday_usage,roaming_Saturday_usage))
+    weekend_usage = sum(c(local_Friday_usage,roaming_Friday_usage,local_Saturday_usage,roaming_Saturday_usage))
     ,
-    weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Saturday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
+    weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Friday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
    )
 
   ## Test
@@ -203,30 +314,54 @@ Also we added four features to describe the data more precisy. we defined weekda
     ,
     weekday_sessions_count = sum(c(local_Sunday_sessions_count,roaming_Sunday_sessions_count,local_Monday_sessions_count,roaming_Monday_sessions_count,local_Tuesday_sessions_count,roaming_Tuesday_sessions_count,local_Wednesday_sessions_count,roaming_Wednesday_sessions_count,local_Thursday_sessions_count,roaming_Thursday_sessions_count))
     ,
-    weekend_usage = sum(c(local_Friday_usage,roaming_Saturday_usage,local_Saturday_usage,roaming_Saturday_usage))
+    weekend_usage = sum(c(local_Friday_usage,roaming_Friday_usage,local_Saturday_usage,roaming_Saturday_usage))
     ,
-    weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Saturday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
+    weekend_sessions_count = sum(c(local_Friday_sessions_count,roaming_Friday_sessions_count,local_Saturday_sessions_count,roaming_Saturday_sessions_count))
    )
 ```
-With adding the above features to the model, the score improved to 0.70333
 
 
+###27- We added some agg. functions for each row like (mean, mean, sd) but the results were 0.70053 which is slightly less the previous score.(Mimi)
+```{r eval=FALSE}
+   train.df <- train.df %>% rowwise() %>% mutate(
+    mean_usage = mean(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)),
+
+    sd_usage =sd(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)),
+
+    median_usage = median(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE) ),
+
+    mean_sessions_count=mean(c(X206_SESSION_COUNT,X207_SESSION_COUNT,X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT)),
+    
+    median_sessions_count=median(c(X206_SESSION_COUNT,X207_SESSION_COUNT,
+      X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT)),
+    
+    sd_sessions_count=sd(c(X206_SESSION_COUNT,X207_SESSION_COUNT,X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT))
+    )
+
+  test.df <- test.df %>% rowwise() %>% mutate(
+    mean_usage = mean(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)),
+
+    sd_usage =sd(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE)),
+
+    median_usage = median(c(X206_USAGE,X207_USAGE,X208_USAGE,X209_USAGE,X210_USAGE) ),
+
+    mean_sessions_count=mean(c(X206_SESSION_COUNT,X207_SESSION_COUNT,X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT)),
+    
+    median_sessions_count=median(c(X206_SESSION_COUNT,X207_SESSION_COUNT,
+      X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT)),
+    
+    sd_sessions_count=sd(c(X206_SESSION_COUNT,X207_SESSION_COUNT,X208_SESSION_COUNT,X209_SESSION_COUNT,X210_SESSION_COUNT))
+    )
+```  
+
+We also tried to take average of probilites between two classifiers. We used Decision Forest and Neural network but the result wasn't so encouring 0.65652.
 
 
+###Ensemble Kaggle Submissions(Mimi)
 
+We tried to improve our score by ensembling the submissions. We calculted the correlation between submissions using this pythong script which posted in Kaggle-Ensemble-Guide repo [correlations.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/correlations.py). when choosing high-correlated submissions the score change slightly (which makes sense), the score changed from 0.70053 to 0.70071 when we choosed scripts 25 and 26 with weights 1, 3 respectively using this [kaggle_vote.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/kaggle_vote.py).
 
-
-
-
-
-
-
-
-
-
-
-
-
+We also tried to ensmable low-correlated submissions like scripts 36 and 26 and give AUC score 0.68192
 
 
 
@@ -240,11 +375,16 @@ With adding the above features to the model, the score improved to 0.70333
 #CrossValidation between different models
 We did the cross validation on Microsoft Azure beacuse our local machinse could'nt stand this big laod.
 
-```{r}
-crossValidation <- read.csv('crossValidationResults.csv')
+Here is the cross validation for the first train columns.
+
+```{r echo=FALSE}
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/initialCrossValidation.csv')
 crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
 crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
 crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
+```
+
+```{r}
 summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
 summary %>% kable
 
@@ -257,8 +397,97 @@ ggplot(summary, aes(Model)) +
   scale_colour_manual(values=c("#F57670","#C680FC","GREEN","BLUE"))+
   #scale_shape_discrete(solid=T, legend=F) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
 ```
+Reasnong blah blah blah
+
+
+Here is the cross validation for the model with the roaming columns added - script blah
+
+```{r echo=FALSE}
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/roamingCrossValidation.csv')
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
+```
+
+```{r}
+summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
+summary %>% kable
+
+ggplot(summary, aes(Model)) +
+  geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
+  geom_point(aes(y = recall, colour = 'Recall'), size= 1.5, group = 1, shape=2)+ 
+  geom_point(aes(y = accuracy, colour = 'Accuracy'), size= 1.5, group = 1, shape=3)+ 
+  geom_point(aes(y = F.Score, colour = 'Score'), size= 1.5, group = 1, shape=4)+ 
+  xlab("Model Name")+ylab("Results")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","GREEN","BLUE"))+
+  #scale_shape_discrete(solid=T, legend=F) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+Reasnong blah blah blah
+
+Here is the cross validation for the model with the daily columns added - Script 25
+
+```{r echo=FALSE}
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/dail1CrossValidation.csv')
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
+```
+
+```{r}
+summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
+summary %>% kable
+
+ggplot(summary, aes(Model)) +
+  geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
+  geom_point(aes(y = recall, colour = 'Recall'), size= 1.5, group = 1, shape=2)+ 
+  geom_point(aes(y = accuracy, colour = 'Accuracy'), size= 1.5, group = 1, shape=3)+ 
+  geom_point(aes(y = F.Score, colour = 'Score'), size= 1.5, group = 1, shape=4)+ 
+  xlab("Model Name")+ylab("Results")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","GREEN","BLUE"))+
+  #scale_shape_discrete(solid=T, legend=F) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+Reasnong blah blah blah
+
+
+
+Here is the cross validation for the model with the daily columns added - Script 25
+
+```{r echo=FALSE}
+crossValidation <- read.csv('CrossValidationsDataFramesAzure/daily2CrossValidationUpdated.csv')
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.BayesPointMachineClassifiers.Dll.BackwardCompatibleBinaryBayesPointMachineClassifier", "Bayes Point", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionJungleClassifier", "Decision Forest Classifier", crossValidation$Model)
+crossValidation$Model <- gsub("Microsoft.Analytics.Modules.Gemini.Dll.BinaryGeminiDecisionForestClassifier", "Decision Jungle Classifier", crossValidation$Model)
+```
+
+```{r}
+summary <- crossValidation %>% group_by(Model) %>% summarise(accuracy = mean(Accuracy), precision = mean(Precision),recall = mean(Recall), F.Score = mean(F.Score), AUC = mean(AUC))
+summary %>% kable
+
+ggplot(summary, aes(Model)) +
+  geom_point(aes(y = precision, colour ='Precision'), size=1.5, group = 1, shape=1) + 
+  geom_point(aes(y = recall, colour = 'Recall'), size= 1.5, group = 1, shape=2)+ 
+  geom_point(aes(y = accuracy, colour = 'Accuracy'), size= 1.5, group = 1, shape=3)+ 
+  geom_point(aes(y = F.Score, colour = 'Score'), size= 1.5, group = 1, shape=4)+ 
+  xlab("Model Name")+ylab("Results")  +
+  scale_colour_manual(values=c("#F57670","#C680FC","GREEN","BLUE"))+
+  #scale_shape_discrete(solid=T, legend=F) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+Reasnong blah blah blah
+
+
+
+
+
+
+#Paramters Selection
+
+For Random forest classifiers we set the the number of tree in the range of (64-128) according to this [article](https://www.researchgate.net/publication/230766603_How_Many_Trees_in_a_Random_Forest) which balance between the performance and the time in training.
+
+When using Azure classsifers We used range parameter to calculate the optimal parametrs as we couldn't invesitage in each classifier internally.
 
 
 
