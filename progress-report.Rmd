@@ -40,7 +40,52 @@ testDf$CONTRACT_KEY %>% unique %>% length
 testDf %>% summary
 sapply(testDf, function(x) sum(is.na(x)))
 ```
-There are no NA values in the original train and test datasets, and no multiple observations for the same `CONTRACT_KEY`.
+There are no NA values in the original train and test datasets, and no multiple observations for the same `CONTRACT_KEY`. Now, we proceed by temporarily adding two features to both datasets, and deriving some insight from them.
+```{r}
+tmpTrain <- trainDf
+tmpTest <- testDf
+trainDf <- trainDf %>% mutate(TOTAL_USAGE = X206_USAGE + X207_USAGE + X208_USAGE + X209_USAGE + X210_USAGE, TOTAL_SESSION_COUNT = X206_SESSION_COUNT + X207_SESSION_COUNT + X208_SESSION_COUNT + X209_SESSION_COUNT + X210_SESSION_COUNT)
+testDf <- testDf %>% mutate(TOTAL_USAGE = X206_USAGE + X207_USAGE + X208_USAGE + X209_USAGE + X210_USAGE, TOTAL_SESSION_COUNT = X206_SESSION_COUNT + X207_SESSION_COUNT + X208_SESSION_COUNT + X209_SESSION_COUNT + X210_SESSION_COUNT)
+```
+Now we define two helper functions. The function `targetPercentCalculator` returns the percentage of users in the trainDf between a given minimum and maximum thresholds for total usage, that have the input target (0 or 1).
+```{r}
+targetPercentCalculator <- function(target, minThreshold, maxThreshold) {
+  tmp <- trainDf %>% filter(TOTAL_USAGE > minThreshold & TOTAL_USAGE < maxThreshold) %>% group_by(TARGET) %>% summarize(sum=n())
+  tmp[tmp$TARGET==target,"sum"][[1]] * 100 / (tmp[tmp$TARGET==1 - target,"sum"][[1]] + tmp[tmp$TARGET==target,"sum"][[1]])
+}
+```
+The function `usagePercentCalculator` returns the percentage of users from the trainDf whose user consumption is between the given thresholds.
+```{r}
+usagePercentCalculator <- function(minThreshold, maxThreshold) {
+  (trainDf %>% filter(TOTAL_USAGE > minThreshold & TOTAL_USAGE < maxThreshold ) %>% nrow) * 100 / (trainDf %>% nrow)
+}
+```
+Now using the previous two functios, we take a look at some properties of the data:
+```{r}
+targetPercentCalculator(0,0,100)
+usagePercentCalculator(0,100)
+```
+Users whose total consumption is betweeen 0 and 100 MB make about 17% of the train data, and 99.6% of them have target 0.
+```{r}
+targetPercentCalculator(0,0,500)
+usagePercentCalculator(0,500)
+```
+Users whose total consumption is betweeen 0 and 500 MB make about 23% of the train data, and 98.65% of them have target 0.
+```{r}
+targetPercentCalculator(0,0,2000)
+usagePercentCalculator(0,2000)
+```
+Users whose total consumption is betweeen 0 and 2000 MB make about 40% of the train data, and 95.5% of them have target 0.
+```{r}
+targetPercentCalculator(0,0,5000)
+usagePercentCalculator(0,5000)
+```
+Users whose total consumption is betweeen 0 and 5000 MB make about 57% of the train data, and 90% of them have target 0.
+```{r}
+trainDf <- tmpTrain
+testDf <- tmpTest
+rm(tmpTrain, tmpTest)
+```
 
 ## ContractRef dataset
 We now proceed with examiming the `contract_ref` dataset.
@@ -996,8 +1041,10 @@ testDf$RATE_PLAN_VALUE[is.na(testDf$RATE_PLAN_VALUE)] <- dominant_rate_plan_valu
 ```
 Adding the calculated `RATE_PLAN_VALUE` to the predictions yields a score of `0.65238`.
 
-##36- Ensemble Kaggle Submissions (Mimi)
+##-- Ensemble Kaggle Submissions (Mimi)
 We tried to improve our score by ensembling some of our best submissions. We calculted the correlation between submissions using this pythong script which is viewable in the Kaggle-Ensemble-Guide repo [correlations.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/correlations.py).
 When choosing high-correlated submissions the score changed slightly (which made sense). An example of that is that the score changed from `0.70333` to `0.70359` (best score so far) when we ensembled the submissions 25 & 26 with weights 1 and 3 respectively using the voting approach described here [kaggle_vote.py](https://github.com/MLWave/Kaggle-Ensemble-Guide/blob/master/kaggle_vote.py).
 
 We also tried to ensmeble low-correlated submissions of the two approaches in `26` and `36` and and this gave a decreased score of `0.68192`.
+
+
