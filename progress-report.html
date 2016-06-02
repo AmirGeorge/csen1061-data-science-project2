@@ -232,22 +232,22 @@ testDf &lt;- testDf %&gt;% mutate(TOTAL_USAGE = X206_USAGE + X207_USAGE + X208_U
 <pre><code>## [1] 99.58602</code></pre>
 <pre class="r"><code>usagePercentCalculator(0,100)</code></pre>
 <pre><code>## [1] 16.65429</code></pre>
-<p>Users whose total consumption is betweeen 0 and 100 MB make about % of the train data, and % of them have target 0.</p>
+<p>Users whose total consumption is betweeen 0 and 100 MB make about 17% of the train data, and 99.6% of them have target 0.</p>
 <pre class="r"><code>targetPercentCalculator(0,0,500)</code></pre>
 <pre><code>## [1] 98.65437</code></pre>
 <pre class="r"><code>usagePercentCalculator(0,500)</code></pre>
 <pre><code>## [1] 23.15505</code></pre>
-<p>Users whose total consumption is betweeen 0 and 500 MB make about % of the train data, and % of them have target 0.</p>
+<p>Users whose total consumption is betweeen 0 and 500 MB make about 23% of the train data, and 98.65% of them have target 0.</p>
 <pre class="r"><code>targetPercentCalculator(0,0,2000)</code></pre>
 <pre><code>## [1] 95.51325</code></pre>
 <pre class="r"><code>usagePercentCalculator(0,2000)</code></pre>
 <pre><code>## [1] 39.62769</code></pre>
-<p>Users whose total consumption is betweeen 0 and 2000 MB make about % of the train data, and % of them have target 0.</p>
+<p>Users whose total consumption is betweeen 0 and 2000 MB make about 40% of the train data, and 95.5% of them have target 0.</p>
 <pre class="r"><code>targetPercentCalculator(0,0,5000)</code></pre>
 <pre><code>## [1] 90.38666</code></pre>
 <pre class="r"><code>usagePercentCalculator(0,5000)</code></pre>
 <pre><code>## [1] 57.3334</code></pre>
-<p>Users whose total consumption is betweeen 0 and 5000 MB make about % of the train data, and % of them have target 0.</p>
+<p>Users whose total consumption is betweeen 0 and 5000 MB make about 57% of the train data, and 90% of them have target 0.</p>
 <pre class="r"><code>trainDf &lt;- tmpTrain
 testDf &lt;- tmpTest
 rm(tmpTrain, tmpTest)</code></pre>
