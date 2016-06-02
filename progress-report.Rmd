@@ -1060,10 +1060,11 @@ Using the chosen final features, I have run a one time 5-fold cross validation o
 ![Results of one-time 5-fold CV on SMO classifier trained on final features](figures/SMO-final.png)
 
 Same as when using the initial features, the SMO classifier achieves the highest F1 score due to its almost perfect recall score. Our experience with CV on the initial features indicates that this is probably due to overfitting This is confirmed the fact that the `SMO` classifier scored the least scores on kaggle among the rest of the classifiers.
-Also, we note that that our chosen MLP classifier scored only the second best precision after the J48 classifier. But, when trying a submission using our final features, a significantly decreased score of `0.59285 ` was obtained, which is evidence that the higher CV kaggle scores is probably due to overfitting as well. 
+Also, we note that that our chosen MLP classifier scored only the second best precision after the J48 classifier. But, when trying a submission using our final features, a significantly decreased score of `0.59285 ` was obtained, which is evidence that the higher CV kaggle scores is probably due to overfitting as well.
+Generally, these discrepancies could be attributed to using one-time 5-fold CV only (due to computational time constraints). As a results, we made use of evaluation results from Microsoft Azure server as well for better insights.
 
-#-- CrossValidation between different models on Azure (Mimi)
-At different steps, we carried on cross validation using our chosen features on some models on Microsoft Azure. It was unpractical to fully rely on local CV at each minor modification due to the exceedingly long computational times. Below is a demonstration of Azure CV results using 4 sets of features as described
+#-- CrossValidation between different models on Azure server (Mimi)
+At different steps, we carried on cross validation using our chosen features on some models on Microsoft Azure. It was unpractical to fully rely on local CV at each minor modification due to the exceedingly long computational times. Below is a demonstration of Azure CV results using 4 sets of features as described:
 
 ## Cross validation for the first train columns:
 This is using all the original features from the original train dataset and before integrating with roaming and daily data).
@@ -1213,11 +1214,16 @@ ggplot(df, aes(updates)) +
   scale_colour_manual(values=c("#F57670","#C680FC","#00FF00"))
 ```
 
-#Notes on model parameter selection in Azure
+## Notes on model parameter selection in Azure
 
 For Random forest classifiers we set the the number of tree in the range of (64-128) according to this [article](https://www.researchgate.net/publication/230766603_How_Many_Trees_in_a_Random_Forest) . The goal from this was to balance between the performance of results and the computational time in training.
 
 In general, when we used Azure classsifers We used range parameters, to give the classifier a better chance at calculating the optimal parameters.
 
-#Evaluating our model(Mimi)
 
+## Evaluation by splitting data on Azure server (Mimi)
+With addition to the CV we did on Azure server, we did another evaluation on Azure by splitting the train data into stratified samples where the data is to be trained is 70% of the whole data.
+```{r}
+evaluateModel <- read.csv('CrossValidationsDataFramesAzure/evaluateModel.csv')
+evaluateModel %>% kable
+```
