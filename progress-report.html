@@ -1026,6 +1026,12 @@ contractRefDfTemp$RATE_PLAN &lt;- as.factor(contractRefDfTemp$RATE_PLAN)</code><
 <p>Building on 33 (Trial 2), let’s proceed to have a <code>RATE_PLAN_VALUE</code> for all the rate plans we have. Some of the <code>RATE_PLAN_VALUE</code> values we have have had a combination of plans that had their corresponding moneytary values, hence at this stage for such examples, the <code>RATE_PLAN_VALUE</code> might have two moneytary values; such as ‘30 150’. So let’s extract the numerical values out and get their mean. The single values will remain as they are and the non numerical values (the rate plans that didn’t contain any moneytary value such as <code>Enterprise Shared Data Bundle</code>) will have their <code>RATE_PLAN_VALUE</code> as NAs.</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN_VALUE &lt;- contractRefDf$RATE_PLAN_VALUE %&gt;% sapply(function(x) x %&gt;% strsplit(&quot; &quot;) %&gt;% sapply(function(y) as.numeric(y)) %&gt;% mean)
 contractRefDf$RATE_PLAN_VALUE &lt;- as.factor(contractRefDf$RATE_PLAN_VALUE)</code></pre>
+<p>Let’s see the different levels in the <code>RATE_PLAN_VALUE</code> how they look:</p>
+<pre class="r"><code>contractRefDf$RATE_PLAN_VALUE %&gt;% unique</code></pre>
+<pre><code>##  [1] 50   40   250  300  35   150  100  30   45   &lt;NA&gt; 110  60   75   25  
+## [15] 350  80   105  70   90   65   20   500  115  550  200  95   59   400 
+## [29] 72.5 5    140  120  499  199  399 
+## 34 Levels: 5 20 25 30 35 40 45 50 59 60 65 70 72.5 75 80 90 95 100 ... 550</code></pre>
 <p>Let’s check the number of levels now:</p>
 <pre class="r"><code>contractRefDf$RATE_PLAN_VALUE %&gt;% unique %&gt;% length</code></pre>
 <pre><code>## [1] 35</code></pre>

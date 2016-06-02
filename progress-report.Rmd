@@ -405,7 +405,7 @@ Adding this feature to the predictions yields a score of `0.67081`, which is not
 
 ##31- Adding a feature that reflects an increasing level of usage in the 5th month (Tony)
 A new parameter was added depending on exceeding the average (mean) usage of the 4 months in the 5th one.
-```{r}
+```{r eval=FALSE}
 trainDf <- trainDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
 testDf <- testDf %>% mutate(x = ifelse(mean(c(X206_USAGE, X207_USAGE, X208_USAGE, X209_USAGE)) < X210_USAGE, 1, 0))
 ```
@@ -563,6 +563,10 @@ Some of the `RATE_PLAN_VALUE` values we have have had a combination of plans tha
 ```{r warning=FALSE}
 contractRefDf$RATE_PLAN_VALUE <- contractRefDf$RATE_PLAN_VALUE %>% sapply(function(x) x %>% strsplit(" ") %>% sapply(function(y) as.numeric(y)) %>% mean)
 contractRefDf$RATE_PLAN_VALUE <- as.factor(contractRefDf$RATE_PLAN_VALUE)
+```
+Let's see the different levels in the `RATE_PLAN_VALUE` how they look:
+```{r}
+contractRefDf$RATE_PLAN_VALUE %>% unique
 ```
 Let's check the number of levels now:
 ```{r}
