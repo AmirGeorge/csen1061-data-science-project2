@@ -895,7 +895,7 @@ As we can see, almost half of the customers have a `VALUE_SEGMENT` of `Core` whi
 Adding the `VALUE_SEGMENT` to the predicitons now yields a score of `0.63465`, which is not an improvement.
 
 ##33- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 2 (Tony)
-Let's try to extract the moneytary value from the `RATE_PLAN` and then include it in the predictions, in a new column/attribute `RATE_PLAN_VALUE`.
+Let's try to extract the monetary value from the `RATE_PLAN` and then include it in the predictions, in a new column/attribute `RATE_PLAN_VALUE`.
 
 First, let's remove the year value:
 ```{r}
@@ -905,7 +905,7 @@ Next, let's remove the GBs size of the plan:
 ```{r}
 contractRefDf$RATE_PLAN_VALUE <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDf$RATE_PLAN_VALUE)
 ```
-Now, any numerical value existing in the `RATE_PLAN` is the moneytary value we want.
+Now, any numerical value existing in the `RATE_PLAN` is the monetary value we want.
 So let's remove any other parts and just keep the number(s):
 ```{r}
 contractRefDf$RATE_PLAN_VALUE <- gsub(" [a-zA-Z]+", "", contractRefDf$RATE_PLAN_VALUE)
@@ -934,11 +934,11 @@ contractRefDfTemp$RATE_PLAN <- gsub(" [0-9]+(\\.[0-9]*)* GB", "", contractRefDfT
 contractRefDfTemp$RATE_PLAN <- gsub(" [0-9]+", "", contractRefDfTemp$RATE_PLAN)
 contractRefDfTemp$RATE_PLAN <- as.factor(contractRefDfTemp$RATE_PLAN)
 ```
-So adding both the updated `RATE_PLAN` and the `RATE_PLAN_VALUE` (calculated in 23) together to the predictions, we obtain a minimum score of `0.50000`.
+So adding both the updated `RATE_PLAN` and the `RATE_PLAN_VALUE` (calculated in 33) together to the predictions, we obtain a minimum score of `0.50000`.
 
 ##35- Analysing and extracting new features from `RATE_PLAN` and adding it to the predictions - Trial 3 (Tony)
 Building on 33 (Trial 2), let's proceed to have a `RATE_PLAN_VALUE` for all the rate plans we have.
-Some of the `RATE_PLAN_VALUE` values we have have had a combination of plans that had their corresponding moneytary values, hence at this stage  for such examples, the `RATE_PLAN_VALUE` might have two moneytary values; such as '30 150'. So let's extract the numerical values out and get their mean. The single values will remain as they are and the non numerical values (the rate plans that didn't contain any moneytary value such as `Enterprise Shared Data Bundle`) will have their `RATE_PLAN_VALUE` as NAs.
+Some of the `RATE_PLAN_VALUE` values have a combination of plans. Hence, at this stage  for such examples, the `RATE_PLAN_VALUE` might have two monetary values; such as '30 150'. So let's extract the numerical values out and get their mean. The single values will remain as they are and the non numerical values (the rate plans that didn't contain any monetary value such as `Enterprise Shared Data Bundle`) will have their `RATE_PLAN_VALUE` as NAs.
 ```{r warning=FALSE}
 contractRefDf$RATE_PLAN_VALUE <- contractRefDf$RATE_PLAN_VALUE %>% sapply(function(x) x %>% strsplit(" ") %>% sapply(function(y) as.numeric(y)) %>% mean)
 contractRefDf$RATE_PLAN_VALUE <- as.factor(contractRefDf$RATE_PLAN_VALUE)
@@ -966,15 +966,15 @@ ggplot(trainDf %>% head(100), aes(x = RATE_PLAN_VALUE, y = mean_usage)) + geom_b
 labs(title = "First 100 records considered", x = "Rate Plan Value", y = "Average Data Usage")
 
 ggplot(trainDf %>% filter(RATE_PLAN_VALUE == c(25, 30, 35, 45, 50, 60, 100, 150, 250, 300)), aes(x = RATE_PLAN_VALUE, y = mean_usage)) + geom_boxplot() +
-labs(title = "Most frequent rate plan (moneytary) values", x = "Rate Plan Value", y = "Average Data Usage")
+labs(title = "Most frequent rate plan (monetary) values", x = "Rate Plan Value", y = "Average Data Usage")
 
 p <- trainDf %>% filter(!is.na(RATE_PLAN_VALUE)) %>% group_by(RATE_PLAN_VALUE) %>% summarise(total_mean_usage = mean(mean_usage))
 
 p %>% ggplot(aes(x = RATE_PLAN_VALUE, y = total_mean_usage)) + geom_bar(stat='identity') + 
-labs(title = "Average Data Usage for all users for each rate plan (moneytary) value", x = "Rate Plan Value", y = "Total Average Data Usage")
+labs(title = "Average Data Usage for all users for each rate plan (monetary) value", x = "Rate Plan Value", y = "Total Average Data Usage")
 ```
 
-Let's have a more generalized feature for the average data usage to help us spot the relation between the `RATE_PLAN_VALUE` and the amount of data usage. So let's round the calculated `mean_usage` to the neares 100 MB:
+Let's have a more generalized feature for the average data usage to help us spot the relation between the `RATE_PLAN_VALUE` and the amount of data usage. So let's round the calculated `mean_usage` to the nearest 100 MB:
 ```{r}
 trainDf <- trainDf %>% mutate(mean_usage_app = round(mean_usage/100)*100)
 testDf <- testDf %>% mutate(mean_usage_app = round(mean_usage/100)*100)
@@ -998,7 +998,7 @@ rpv_frequencies %>% ggplot(aes(x = RATE_PLAN_VALUE, y = RPV_frequency)) + geom_b
 labs(title = "Below 50 MB (0) avg. usage", x = "Rate Plan Value", y = "Frequency")
 ```
 
-As we can see, the dominant rate plan (moneytary) values for the corresponding (< 50 MB [0] avg. usage) are the `30` and `35` ones. Both are quite close values. Hence, it's showing a relation between the `RATE_PLAN_VALUE` and the corresponding average data usage.
+As we can see, the dominant rate plan (monetary) values for the corresponding (< 50 MB [0] avg. usage) are the `30` and `35` ones. Both are quite close values. Hence, it's showing a relation between the `RATE_PLAN_VALUE` and the corresponding average data usage.
 
 ###200 MB:
 ```{r}
@@ -1008,7 +1008,7 @@ rpv_frequencies %>% ggplot(aes(x = RATE_PLAN_VALUE, y = RPV_frequency)) + geom_b
 labs(title = "Apprx. 200 MB avg. usage", x = "Rate Plan Value", y = "Frequency")
 ```
 
-As we can see, the dominant rate plan (moneytary) values for the corresponding (apprx. 200 MB avg. usage) is `35`. Hence, it's showing a relation between the `RATE_PLAN_VALUE` and the corresponding average data usage.
+As we can see, the dominant rate plan (monetary) values for the corresponding (apprx. 200 MB avg. usage) is `35`. Hence, it's showing a relation between the `RATE_PLAN_VALUE` and the corresponding average data usage.
 
 ###100 MB:
 ```{r}
@@ -1018,7 +1018,7 @@ rpv_frequencies %>% ggplot(aes(x = RATE_PLAN_VALUE, y = RPV_frequency)) + geom_b
 labs(title = "Apprx. 100 MB avg. usage", x = "Rate Plan Value", y = "Frequency")
 ```
 
-As we can see, the dominant rate plan (moneytary) values for the corresponding (apprx. 100 MB avg. usage) is `35`. Hence, it's showing a relation between the `RATE_PLAN_VALUE` and the corresponding average data usage.
+As we can see, the dominant rate plan (monetary) values for the corresponding (apprx. 100 MB avg. usage) is `35`. Hence, it's showing a relation between the `RATE_PLAN_VALUE` and the corresponding average data usage.
 
 As we can see from all the previous calculations and data plotting, we can say that there's a relation between the `RATE_PLAN_VALUE` and the data usage.
 
