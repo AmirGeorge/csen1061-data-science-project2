@@ -218,7 +218,7 @@ ggplot(df, aes(monthly_names)) +
 trainDf <- trainDf %>% rowwise() %>% mutate(diff1 = X207_USAGE - X206_USAGE, diff2 = X208_USAGE-X207_USAGE, diff3=X209_USAGE-X208_USAGE,diff4=X210_USAGE-X209_USAGE, always_increasing = (diff1 > 0 & diff2 > 0 & diff3 >0 & diff4 > 0))
 ```
 
-#Offline Evaluation
+#Offline Evaluation (Amir)
 Due to the limited number of possible submissions per day on the kaggle competition, a method for offline evaluation of our obtained models was necessary. Two helper functions serve that purpose. The function `getEvaluation` extracts the required classification evaluation measures from a given confusion matrix.
 ```{r}
 getEvaluation <- function(confMat) {
@@ -287,7 +287,7 @@ rm(model)
 ![local 5-fold CV for initial features](figures/initialCV.png)
 
 ### Reasoning in the initial CV scores
-It should be noted that the NN classifier which had the highest score on kaggle is the one with the highest precision in the 5-fold CV. Also, when studying the results of the SMO classifier, I was amused to find that the perfect recall score and the 0.79 precision are due to the fact that it recommended all target as `0`. It correctly classified all the 00target observations as it classified all the observations as 0. Moreover, it scored a precision of 0.79 because this is the actual ratio of 0-target observations in the training set. From the misleading results of the SMO classifier, we deduce that the precision metric is more valuable in our purpose, possibly due to the fact that most of the observations have a target of 0.
+It should be noted that the NN classifier which had the highest score on kaggle is the one with the highest precision in the 5-fold CV. Also, when studying the results of the SMO classifier, I was amused to find that the perfect recall score and the 0.79 precision are due to the fact that it recommended all target as `0`. It correctly classified all the 0-target observations as it classified all the observations as 0. Moreover, it scored a precision of 0.79 because this is the actual ratio of 0-target observations in the training set. From the misleading results of the SMO classifier, we deduce that the precision metric could be more valuable in our purpose, possibly due to the fact that most of the observations have a target of 0. However, some inspection of the classifier results in general are needed, as some high results due to overfitting can be misleading.
 
 ##9- Neural Network with removing `SESSION_COUNT` columns (Amir)
 By continuing on number `8` above (NN classifier), I removed all `SESSION_COUNT` from the prediction. The intuition behind this approach is that `USAGE` is the main concern here. However, a decreased score of `0.58118` was obtained, proving that session count indeed matters, and the approach here was neglected.
@@ -1058,6 +1058,9 @@ Using the chosen final features, I have run a one time 5-fold cross validation o
 ![Results of one-time 5-fold CV on NB classifier trained on final features](figures/NB-final.png)
 
 ![Results of one-time 5-fold CV on SMO classifier trained on final features](figures/SMO-final.png)
+
+Same as when using the initial features, the SMO classifier achieves the highest F1 score due to its almost perfect recall score. Our experience with CV on the initial features indicates that this is probably due to overfitting This is confirmed the fact that the `SMO` classifier scored the least scores on kaggle among the rest of the classifiers.
+Also, we note that that our chosen MLP classifier scored only the second best precision after the J48 classifier. But, when trying a submission using our final features, a significantly decreased score of `0.59285 ` was obtained, which is evidence that the higher CV kaggle scores is probably due to overfitting as well. 
 
 #-- CrossValidation between different models on Azure (Mimi)
 At different steps, we carried on cross validation using our chosen features on some models on Microsoft Azure. It was unpractical to fully rely on local CV at each minor modification due to the exceedingly long computational times. Below is a demonstration of Azure CV results using 4 sets of features as described
