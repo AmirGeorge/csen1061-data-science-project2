@@ -232,7 +232,7 @@
                      local_Thursday_usage+local_Saturday_usage+local_Sunday_usage+local_Monday_usage+local_Tuesday_usage+local_Wednesday_usage+local_Friday_usage+
                      roaming_Thursday_usage+roaming_Saturday_usage+roaming_Sunday_usage+roaming_Monday_usage+roaming_Tuesday_usage+roaming_Wednesday_usage+roaming_Friday_usage+
                      local_Thursday_sessions_count+local_Saturday_sessions_count+local_Sunday_sessions_count+local_Monday_sessions_count+local_Tuesday_sessions_count+local_Wednesday_sessions_count+local_Friday_sessions_count+
-                     roaming_Thursday_sessions_count+roaming_Saturday_sessions_count+roaming_Sunday_sessions_count+roaming_Monday_sessions_count+roaming_Tuesday_sessions_count+roaming_Wednesday_sessions_count+roaming_Friday_sessions_count+ weekday_usage+ weekend_usage+ weekday_sessions_count+ weekend_sessions_count+x
+                     roaming_Thursday_sessions_count+roaming_Saturday_sessions_count+roaming_Sunday_sessions_count+roaming_Monday_sessions_count+roaming_Tuesday_sessions_count+roaming_Wednesday_sessions_count+roaming_Friday_sessions_count+ weekday_usage+ weekend_usage+ weekday_sessions_count+ weekend_sessions_count
                                 , data=train.df)
  
 
